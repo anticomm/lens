@@ -223,16 +223,16 @@ def run():
             sent_data[asin] = price
 
     if products_to_send:
-        driver_akakce = get_driver()  # Akakçe için ayrı driver
+        driver_cimri = get_driver()  # Cimri için ayrı driver
 
         for p in products_to_send:
             send_message(p)  # Amazon mesajı + görseli
 
-            akakce_image = capture_akakce_screenshot(driver_akakce, p["title"])
-            if akakce_image:
-                send_akakce_image(p, akakce_image)
+            cimri_image = capture_cimri_screenshot(driver_cimri, p["title"])
+            if cimri_image:
+                send_cimri_image(p, cimri_image)
 
-        driver_akakce.quit()
+        driver_cimri.quit()
         save_sent_data(sent_data)
         print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
     else:
