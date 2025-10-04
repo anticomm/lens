@@ -1,6 +1,6 @@
 import os
 import requests
-def send_akakce_image(product, akakce_image_path):
+def send_cimri_image(product, cimri_image_path):
     token = os.getenv("BOT_TOKEN")
     chat_id = os.getenv("CHAT_ID")
     base_url = f"https://api.telegram.org/bot{token}"
@@ -10,18 +10,18 @@ def send_akakce_image(product, akakce_image_path):
         return
 
     title = product.get("title", "Ürün")
-    caption = f"📊 Akakçe karşılaştırması: *{title}*"
+    caption = f"📊 Cimri karşılaştırması: *{title}*"
     try:
-        with open(akakce_image_path, "rb") as img:
+        with open(Cimri_image_path, "rb") as img:
             files = {"photo": img}
             data = {"chat_id": chat_id, "caption": caption, "parse_mode": "Markdown"}
             response = requests.post(f"{base_url}/sendPhoto", data=data, files=files)
         if response.status_code == 200:
-            print(f"✅ Akakçe görseli gönderildi: {title}")
+            print(f"✅ Cimri görseli gönderildi: {title}")
         else:
-            print(f"❌ Akakçe görsel hatası: {title} → {response.status_code} {response.text}")
+            print(f"❌ Cimri görsel hatası: {title} → {response.status_code} {response.text}")
     except Exception as e:
-        print(f"❌ Akakçe görsel gönderim hatası: {e}")
+        print(f"❌ Cimri görsel gönderim hatası: {e}")
 def format_product_message(product):
     title = product.get("title", "🛍️ Ürün adı bulunamadı")
     price = product.get("price", "Fiyat alınamadı")
