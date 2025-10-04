@@ -1,22 +1,29 @@
 import re
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 def normalize_title_for_epey(title):
     title = title.lower()
-    title = re.sub(r"\(.*?\)", "", title)  # parantez içini sil
-    title = re.sub(r"\d{2,4}[.,]?\d{0,2}\s*x\s*\d{2,4}[.,]?\d{0,2}", "", title)  # boyutları sil
+    title = re.sub(r"\(.*?\)", "", title)
+    title = re.sub(r"\d{2,4}[.,]?\d{0,2}\s*x\s*\d{2,4}[.,]?\d{0,2}", "", title)
     title = re.sub(r"\b(eos r|zoom|lens|lensi|objektif|siyah|renkli|motoru|görüntü|sabitleyici|kit|mm)\b", "", title)
-    title = re.sub(r"[^\w\s\.\-]", "", title)  # sadece kelime, boşluk, nokta ve tire kalsın
+    title = re.sub(r"[^\w\s\.\-]", "", title)
     title = re.sub(r"\s+", " ", title).strip()
     return title
 
-def get_epey_url_from_selenium(driver, title):
+def search_epey_from_homepage(driver, title):
     try:
         normalized = normalize_title_for_epey(title)
-        query_url = f"https://www.epey.com/arama/?q={normalized.replace(' ', '+')}"
-        driver.get(query_url)
+        driver.get("https://www.epey.com/")
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "ara"))
+        )
+        input_box = driver.find_element(By.ID, "ara")
+        input_box.clear()
+        input_box.send_keys(normalized)
+        input_box.send_keys(Keys.ENTER)
 
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "div.listing-item a[href^='https://www.epey.com/lens/']"))
@@ -39,7 +46,7 @@ from selenium.webdriver.chrome.options import Options
 
 # Selenium driver başlat
 options = Options()
-options.add_argument("--headless")  # arka planda çalıştır
+options.add_argument("--headless")  # test için kapatılabilir
 driver_epey = webdriver.Chrome(options=options)
 
 # Ürün listesi örnek
@@ -48,18 +55,14 @@ products = [
     {"title": "Canon RF-S 10-18mm F4.5-6.3 IS STM Lens"}
 ]
 
+# Epey linklerini al
 for p in products:
-    epey_url = get_epey_url_from_selenium(driver_epey, p["title"])
-    if epey_url:
-        print(f"📎 Link eklendi: {epey_url}")
-        p["epey_url"] = epey_url
-    else:
-        print(f"🚫 Link bulunamadı: {p['title']}")
-        p["epey_url"] = None
+    epey_url = search_epey_from_homepage(driver_epey, p["title"])
+    p["epey_url"] = epey_url or "Bulunamadı"
 
 driver_epey.quit()
 
 # Sonuçları yazdır
 for p in products:
     print(f"\n🆕 Ürün: {p['title']}")
-    print(f"🔗 Epey Linki: {p['epey_url'] or 'Bulunamadı'}")
+    print(f"🔗 Epey Linki: {p['epey_url']}")
