@@ -1,6 +1,5 @@
 import re
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -13,29 +12,23 @@ def normalize_title_for_epey(title):
     title = re.sub(r"\s+", " ", title).strip()
     return title
 
-def search_epey_from_homepage(driver, title):
+def get_epey_url_from_search(driver, title):
     try:
         normalized = normalize_title_for_epey(title)
-        driver.get("https://www.epey.com/")
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "ara"))
-        )
-        input_box = driver.find_element(By.ID, "ara")
-        input_box.clear()
-        input_box.send_keys(normalized)
-        input_box.send_keys(Keys.ENTER)
+        search_url = f"https://www.epey.com/arama/?q={normalized.replace(' ', '+')}"
+        driver.get(search_url)
 
         WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "div.listing-item a[href^='https://www.epey.com/lens/']"))
+            EC.presence_of_element_located((By.CSS_SELECTOR, "div.listing-item a"))
         )
 
-        for link in driver.find_elements(By.CSS_SELECTOR, "div.listing-item a[href^='https://www.epey.com/lens/']"):
+        for link in driver.find_elements(By.CSS_SELECTOR, "div.listing-item a"):
             href = link.get_attribute("href")
-            if "/karsilastir/" not in href:
+            if href and "epey.com/lens/" in href and "/karsilastir/" not in href:
                 print(f"✅ Epey ürün linki bulundu: {href}")
                 return href
 
-        print(f"⚠️ Ürün sayfası bulunamadı: {title}")
+        print(f"🚫 Ürün sayfası bulunamadı: {title}")
         return None
 
     except Exception as e:
@@ -57,7 +50,7 @@ products = [
 
 # Epey linklerini al
 for p in products:
-    epey_url = search_epey_from_homepage(driver_epey, p["title"])
+    epey_url = get_epey_url_from_search(driver_epey, p["title"])
     p["epey_url"] = epey_url or "Bulunamadı"
 
 driver_epey.quit()
