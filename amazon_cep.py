@@ -11,19 +11,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from telegram_cep import send_message, send_akakce_image
-def get_akakce_search_url(title):
-    base = "https://www.akakce.com/arama/?q="
+def get_cimri_search_url(title):
+    base = "https://www.cimri.com/arama?q="
     return base + title.replace(" ", "+")
-
-def capture_akakce_screenshot(driver, title, save_path="akakce.png"):
+def capture_cimri_screenshot(driver, title, save_path="cimri.png"):
     try:
-        url = get_akakce_search_url(title)
+        url = get_cimri_search_url(title)
         driver.get(url)
         time.sleep(2)
         driver.save_screenshot(save_path)
         return save_path
     except Exception as e:
-        print(f"⚠️ Akakçe ekran görüntüsü alınamadı: {e}")
+        print(f"⚠️ Cimri ekran görüntüsü alınamadı: {e}")
         return None
 
 URL = "https://www.amazon.com.tr/s?i=electronics&rh=n%3A13710137031%2Cp_36%3A-5000000%2Cp_123%3A359121%2Cp_n_g-101013615904111%3A68100078031%2Cp_98%3A21345978031%2Cp_n_condition-type%3A13818537031&dc&ds=v1%3A6sZpe%2FYE4bu2CESwIu9R1HeLmlpl8j6yDZ3GeYQEjJg"
