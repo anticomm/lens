@@ -9,19 +9,6 @@ def send_cimri_image(product, cimri_image_path):
         print("❌ BOT_TOKEN veya CHAT_ID tanımlı değil.")
         return
 
-    title = product.get("title", "Ürün")
-    caption = f"📊 Cimri karşılaştırması: *{title}*"
-    try:
-        with open(cimri_image_path, "rb") as img:
-            files = {"photo": img}
-            data = {"chat_id": chat_id, "caption": caption, "parse_mode": "Markdown"}
-            response = requests.post(f"{base_url}/sendPhoto", data=data, files=files)
-        if response.status_code == 200:
-            print(f"✅ Cimri görseli gönderildi: {title}")
-        else:
-            print(f"❌ Cimri görsel hatası: {title} → {response.status_code} {response.text}")
-    except Exception as e:
-        print(f"❌ Cimri görsel gönderim hatası: {e}")
 def format_product_message(product):
     title = product.get("title", "🛍️ Ürün adı bulunamadı")
     price = product.get("price", "Fiyat alınamadı")
