@@ -21,23 +21,25 @@ def normalize_title_for_epey(title):
     title = re.sub(r"\s+", " ", title).strip()
     return title
 
-def get_epey_url_from_epey(title):
+def get_epey_url_from_artado(title):
     normalized = normalize_title_for_epey(title)
-    query_url = f"https://www.epey.com/arama/?q={normalized.replace(' ', '+')}"
-    headers = {"User-Agent": "Mozilla/5.0"}
+    query = f"{normalized} site:epey.com"
+    url = f"https://www.artado.com/search?q={query.replace(' ', '+')}"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115 Safari/537.36"
+    }
 
-    print(f"🔎 Epey araması: {query_url}")
-    response = requests.get(query_url, headers=headers)
+    print(f"🔎 Artado araması: {query}")
+    response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
 
-    link_tag = soup.select_one("div.listing-item a[href^='https://www.epey.com/']")
-    if link_tag:
-        link = link_tag["href"]
-        print(f"✅ Epey ürün linki bulundu: {link}")
-        return link
-    else:
-        print(f"⚠️ Epey ürün linki bulunamadı: {title}")
-        return None
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        if "epey.com" in href and href.startswith("https://www.epey.com/"):
+            print(f"✅ Epey linki bulundu: {href}")
+            return href
+    print(f"⚠️ Epey linki bulunamadı: {title}")
+    return None
 
 def capture_epey_screenshot(driver, title_or_url, save_path="epey.png"):
     try:
@@ -259,7 +261,7 @@ def run():
         for p in products_to_send:
             send_message(p)  # Amazon mesajı + görseli
 
-            epey_url = get_epey_url_from_epey(p["title"])
+            epey_url = get_epey_url_from_artado(p["title"])
             if epey_url:
                 epey_image = capture_epey_screenshot(driver_epey, epey_url)
                 if epey_image:
