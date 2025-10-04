@@ -2,6 +2,7 @@ import os
 import json
 import time
 import base64
+import re
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -11,7 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from telegram_cep import send_message
 
-URL = "https://www.amazon.com.tr/s?i=electronics&rh=n%3A12466496031%2Cn%3A13709883031%2Cn%3A13709938031%2Cn%3A13710137031%2Cp_36%3A-5000000%2Cp_123%3A359121%2Cp_n_g-101013615904111%3A68100078031&dc&ds=v1%3A3hudIubMzEomyiDTLhL1252C8P8hj57vBestCoSe7Gg"
+URL = "https://www.amazon.com.tr/s?i=electronics&rh=n%3A13710137031%2Cp_36%3A-5000000%2Cp_123%3A359121%2Cp_n_g-101013615904111%3A68100078031%2Cp_98%3A21345978031%2Cp_n_condition-type%3A13818537031&dc&ds=v1%3A6sZpe%2FYE4bu2CESwIu9R1HeLmlpl8j6yDZ3GeYQEjJg"
 COOKIE_FILE = "cookie_cep.json"
 SENT_FILE = "send_products.txt"
 
@@ -49,49 +50,54 @@ def load_cookies(driver):
 
 def get_driver():
     options = Options()
-    options.add_argument("--headless")
+    options.add_argument("--headless=new")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--window-size=1920,1080")
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115 Safari/537.36")
     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
-def get_price_from_detail(driver, url):
+def get_used_price_from_item(item):
     try:
-        driver.get(url)
-        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CSS_SELECTOR, "body")))
-        time.sleep(2)
+        container = item.find_element(
+            By.XPATH,
+            ".//span[contains(text(), 'Diğer satın alma seçenekleri')]/following::span[contains(text(), 'TL')][1]"
+        )
+        price = container.text.strip()
+        return price
+    except:
+        return None
 
-        # Normal ürün sayfasında fiyat araması
-        price_elements = driver.find_elements(By.CSS_SELECTOR, ".aok-offscreen")
-        for el in price_elements:
-            text = el.get_attribute("innerText").strip()
-            if "TL" in text and any(char.isdigit() for char in text):
-                return text
+def get_used_price_from_detail(driver):
+    try:
+        container = driver.find_element(
+            By.XPATH,
+            "//div[contains(@class, 'a-column') and .//span[contains(text(), 'İkinci El Ürün Satın Al:')]]"
+        )
+        price_element = container.find_element(By.CLASS_NAME, "offer-price")
+        price = price_element.text.strip()
+        return price
+    except:
+        return None
 
-        # Eğer fiyat bulunamadıysa → satın alma seçenekleri sayfasına git
-        try:
-            offer_link = driver.find_element(By.CSS_SELECTOR, "a.a-button-text[title*='Satın Alma Seçeneklerini Gör']")
-            offer_url = offer_link.get_attribute("href")
-            if offer_url:
-                if offer_url.startswith("/"):
-                    offer_url = "https://www.amazon.com.tr" + offer_url
-                driver.get(offer_url)
-                WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".aok-offscreen")))
-                time.sleep(1)
-                offer_prices = driver.find_elements(By.CSS_SELECTOR, ".aok-offscreen")
-                for el in offer_prices:
-                    text = el.get_attribute("innerText").strip()
-                    if "TL" in text and any(char.isdigit() for char in text):
-                        return text
-        except Exception as e:
-            print(f"⚠️ Satın alma seçenekleri sayfası hatası: {e}")
-
-        return "Fiyat alınamadı"
+def get_final_price(driver, link):
+    try:
+        driver.execute_script("window.open('');")
+        driver.switch_to.window(driver.window_handles[1])
+        driver.get(link)
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "body")))
+        price = get_used_price_from_detail(driver)
+        driver.close()
+        driver.switch_to.window(driver.window_handles[0])
+        return price
     except Exception as e:
-        print(f"⚠️ Detay sayfasından fiyat alınamadı: {e}")
-        return "Fiyat alınamadı"
-
+        print(f"⚠️ Detay sayfa hatası: {e}")
+        try:
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+        except:
+            pass
+        return None
 
 def load_sent_data():
     data = {}
@@ -128,41 +134,50 @@ def run():
         driver.quit()
         return
 
+    driver.execute_script("""
+      document.querySelectorAll("h5.a-carousel-heading").forEach(h => {
+        let box = h.closest("div");
+        if (box) box.remove();
+      });
+    """)
+
     items = driver.find_elements(By.CSS_SELECTOR, "div[data-component-type='s-search-result']")
     print(f"🔍 {len(items)} ürün bulundu.")
-
-    product_links = []
+    products = []
     for item in items:
         try:
-            # Sponsorlu ürün kontrolü
             if item.find_elements(By.XPATH, ".//span[contains(text(), 'Sponsorlu')]"):
-                continue  # sponsorluysa atla
+                continue
 
             asin = item.get_attribute("data-asin")
+            if not asin:
+                continue
+
             title = item.find_element(By.CSS_SELECTOR, "img.s-image").get_attribute("alt").strip()
             link = item.find_element(By.CSS_SELECTOR, "a.a-link-normal").get_attribute("href")
             image = item.find_element(By.CSS_SELECTOR, "img.s-image").get_attribute("src")
-            product_links.append({
+
+            price = get_used_price_from_item(item)
+            if not price:
+                price = get_final_price(driver, link)
+
+            if not price:
+                continue
+
+            products.append({
                 "asin": asin,
                 "title": title,
                 "link": link,
-                "image": image
+                "image": image,
+                "price": price
             })
-        except Exception as e:
-            print("⚠️ Listeleme parse hatası:", e)
-            continue
 
-    products = []
-    for product in product_links:
-        try:
-            price = get_price_from_detail(driver, product["link"])
-            product["price"] = price
-            products.append(product)
         except Exception as e:
-            print("⚠️ Detay sayfa hatası:", e)
+            print(f"⚠️ Ürün parse hatası: {e}")
             continue
 
     driver.quit()
+    print(f"✅ {len(products)} ürün başarıyla alındı.")
 
     sent_data = load_sent_data()
     products_to_send = []
@@ -176,17 +191,19 @@ def run():
             try:
                 old_val = float(old_price.replace("TL", "").replace(".", "").replace(",", ".").strip())
                 new_val = float(price.replace("TL", "").replace(".", "").replace(",", ".").strip())
-                if new_val < old_val:
-                    print(f"📉 Fiyat düştü: {product['title']} → {old_price} → {price}")
-                    product["old_price"] = old_price
-                    products_to_send.append(product)
-                else:
-                    print(f"⏩ Fiyat yükseldi veya aynı: {product['title']} → {old_price} → {price}")
-                # Her durumda son fiyatı güncelle
-                sent_data[asin] = price
             except:
                 print(f"⚠️ Fiyat karşılaştırılamadı: {product['title']} → {old_price} → {price}")
                 sent_data[asin] = price
+                continue
+
+            if new_val < old_val:
+                print(f"📉 Fiyat düştü: {product['title']} → {old_price} → {price}")
+                product["old_price"] = old_price
+                products_to_send.append(product)
+            else:
+                print(f"⏩ Fiyat yükseldi veya aynı: {product['title']} → {old_price} → {price}")
+            sent_data[asin] = price
+
         else:
             print(f"🆕 Yeni ürün: {product['title']}")
             products_to_send.append(product)
