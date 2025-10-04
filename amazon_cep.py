@@ -112,6 +112,22 @@ def get_final_price(driver, link):
         except:
             pass
         return None
+
+def load_sent_data():
+    data = {}
+    if os.path.exists(SENT_FILE):
+        with open(SENT_FILE, "r", encoding="utf-8") as f:
+            for line in f:
+                parts = line.strip().split("|", 1)
+                if len(parts) == 2:
+                    asin, price = parts
+                    data[asin.strip()] = price.strip()
+    return data
+
+def save_sent_data(updated_data):
+    with open(SENT_FILE, "w", encoding="utf-8") as f:
+        for asin, price in updated_data.items():
+            f.write(f"{asin} | {price}\n")
 def run():
     if not decode_cookie_from_env():
         return
@@ -205,6 +221,7 @@ def run():
             print(f"🆕 Yeni ürün: {product['title']}")
             products_to_send.append(product)
             sent_data[asin] = price
+
     if products_to_send:
         driver_epey = get_driver()  # Epey için ayrı driver
 
