@@ -13,15 +13,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from telegram_cep import send_message, send_epey_image
-
 def normalize_title_for_epey(title):
     title = title.lower()
     title = re.sub(r"\(.*?\)", "", title)  # parantez içini sil
-    title = re.sub(r"\d{2,4}\s*x\s*\d{2,4}", "", title)  # boyutları sil
-    title = re.sub(r"\b(eos r|zoom|lens|lensi|objektif|siyah|renkli|motoru|görüntü|sabitleyici)\b", "", title)
+    title = re.sub(r"\d{2,4}[.,]?\d{0,2}\s*x\s*\d{2,4}[.,]?\d{0,2}", "", title)  # boyutları sil (virgül/nokta dahil)
+    title = re.sub(r"\b(eos r|zoom|lens|lensi|objektif|siyah|renkli|motoru|görüntü|sabitleyici|mm|site:epey.com)\b", "", title)
     title = re.sub(r"[^\w\s\.\-]", "", title)  # sadece kelime, boşluk, nokta ve tire kalsın
     title = re.sub(r"\s+", " ", title).strip()
     return title
+
 
 def get_epey_url_from_artado(title):
     normalized = normalize_title_for_epey(title)
