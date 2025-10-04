@@ -3,6 +3,7 @@ import json
 import time
 import base64
 import requests
+import re
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -13,8 +14,16 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from telegram_cep import send_message, send_epey_image
 
+def normalize_title_for_epey(title):
+    title = title.lower()
+    title = re.sub(r"\(.*?\)", "", title)
+    title = re.sub(r"[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ\s\-]", "", title)
+    title = re.sub(r"\s+", " ", title).strip()
+    return title
+
 def get_epey_url_from_google(title):
-    query = f"{title} site:epey.com"
+    normalized = normalize_title_for_epey(title)
+    query = f"{normalized} site:epey.com"
     url = f"https://www.google.com/search?q={query.replace(' ', '+')}"
     headers = {"User-Agent": "Mozilla/5.0"}
 
