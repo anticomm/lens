@@ -59,22 +59,38 @@ def format_product_message(product):
         f"🔗 [🔥🔥 FIRSATA GİT 🔥🔥]({link})"
     )
 
-def send_cimri_image(product, cimri_image_path):
+def send_message(product):
     token = os.getenv("BOT_TOKEN")
     chat_id = os.getenv("CHAT_ID")
     base_url = f"https://api.telegram.org/bot{token}"
 
-    title = product.get("title", "Ürün")
-    caption = f"📊 Cimri karşılaştırması: *{title}*"
+    if not token or not chat_id:
+        print("❌ BOT_TOKEN veya CHAT_ID tanımlı değil.")
+        return
+
+    message = format_product_message(product)
+    image_url = product.get("image")
 
     try:
-        with open(cimri_image_path, "rb") as img:
-            files = {"photo": img}
-            data = {"chat_id": chat_id, "caption": caption, "parse_mode": "Markdown"}
-            response = requests.post(f"{base_url}/sendPhoto", data=data, files=files)
-        if response.status_code == 200:
-            print(f"✅ Cimri görseli gönderildi: {title}")
+        if image_url and image_url.startswith("http"):
+            payload = {
+                "chat_id": chat_id,
+                "photo": image_url,
+                "caption": message,
+                "parse_mode": "Markdown"
+            }
+            response = requests.post(f"{base_url}/sendPhoto", data=payload)
         else:
-            print(f"❌ Cimri görsel hatası: {title} → {response.status_code} {response.text}")
+            payload = {
+                "chat_id": chat_id,
+                "text": message,
+                "parse_mode": "Markdown"
+            }
+            response = requests.post(f"{base_url}/sendMessage", data=payload)
+
+        if response.status_code == 200:
+            print(f"✅ Gönderildi: {product.get('title', 'Ürün')}")
+        else:
+            print(f"❌ Gönderim hatası: {product.get('title', 'Ürün')} → {response.status_code} {response.text}")
     except Exception as e:
-        print(f"❌ Cimri görsel gönderim hatası: {e}")
+        print(f"❌ Telegram gönderim hatası: {e}")
