@@ -21,24 +21,23 @@ def normalize_title_for_epey(title):
     title = re.sub(r"\s+", " ", title).strip()
     return title
 
-def get_epey_url_from_bing(title):
+def get_epey_url_from_epey(title):
     normalized = normalize_title_for_epey(title)
-    query = f"{normalized} site:epey.com"
-    url = f"https://www.bing.com/search?q={query.replace(' ', '+')}"
+    query_url = f"https://www.epey.com/arama/?q={normalized.replace(' ', '+')}"
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    print(f"🔎 Bing araması: {query}")
-    print(f"🌐 Bing URL: {url}")
-
-    response = requests.get(url, headers=headers)
+    print(f"🔎 Epey araması: {query_url}")
+    response = requests.get(query_url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
 
-    for a in soup.find_all("a", href=True):
-        href = a["href"]
-        if "epey.com" in href and href.startswith("https://www.epey.com/"):
-            print(f"✅ Epey linki bulundu: {href}")
-            return href
-    return None
+    link_tag = soup.select_one("div.listing-item a[href^='https://www.epey.com/']")
+    if link_tag:
+        link = link_tag["href"]
+        print(f"✅ Epey ürün linki bulundu: {link}")
+        return link
+    else:
+        print(f"⚠️ Epey ürün linki bulunamadı: {title}")
+        return None
 
 def capture_epey_screenshot(driver, title_or_url, save_path="epey.png"):
     try:
@@ -260,7 +259,7 @@ def run():
         for p in products_to_send:
             send_message(p)  # Amazon mesajı + görseli
 
-            epey_url = get_epey_url_from_bing(p["title"])
+            epey_url = get_epey_url_from_epey(p["title"])
             if epey_url:
                 epey_image = capture_epey_screenshot(driver_epey, epey_url)
                 if epey_image:
