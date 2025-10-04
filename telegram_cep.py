@@ -12,7 +12,7 @@ def send_cimri_image(product, cimri_image_path):
     title = product.get("title", "Ürün")
     caption = f"📊 Cimri karşılaştırması: *{title}*"
     try:
-        with open(Cimri_image_path, "rb") as img:
+        with open(cimri_image_path, "rb") as img:
             files = {"photo": img}
             data = {"chat_id": chat_id, "caption": caption, "parse_mode": "Markdown"}
             response = requests.post(f"{base_url}/sendPhoto", data=data, files=files)
