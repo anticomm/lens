@@ -16,12 +16,11 @@ from telegram_cep import send_message, send_epey_image
 
 def normalize_title_for_epey(title):
     title = title.lower()
-    title = re.sub(r"\(.*?\)", "", title)
+    title = re.sub(r"\(.*?\)", "", title)  # parantez içini sil
     title = re.sub(r"\d{2,4}\s*x\s*\d{2,4}", "", title)  # boyutları sil
-    title = re.sub(r"\b(eos r|zoom|lens|objektif|siyah|renkli|mm|cm|x)\b", "", title)
-    title = re.sub(r"[^a-zA-Z0-9ğüşıöç\s\-\.]", "", title)
+    title = re.sub(r"\b(eos r|zoom|lens|lensi|objektif|siyah|renkli|motoru|görüntü|sabitleyici)\b", "", title)
+    title = re.sub(r"[^\w\s\.\-]", "", title)  # sadece kelime, boşluk, nokta ve tire kalsın
     title = re.sub(r"\s+", " ", title).strip()
-    title = re.sub(r"\b\d{3,4}\b", "", title)  # 3-4 haneli sayıları sil
     return title
 
 def get_epey_url_from_artado(title):
