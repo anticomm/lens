@@ -10,7 +10,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
-from telegram_cep import send_message
+from telegram_cep import send_message, send_akakce_image
 def get_akakce_search_url(title):
     base = "https://www.akakce.com/arama/?q="
     return base + title.replace(" ", "+")
