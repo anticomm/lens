@@ -21,20 +21,23 @@ def normalize_title_for_epey(title):
     title = re.sub(r"\s+", " ", title).strip()
     return title
 
-def get_epey_url_from_google(title):
+def get_epey_url_from_bing(title):
     normalized = normalize_title_for_epey(title)
     query = f"{normalized} site:epey.com"
-    url = f"https://www.google.com/search?q={query.replace(' ', '+')}"
+    url = f"https://www.bing.com/search?q={query.replace(' ', '+')}"
     headers = {"User-Agent": "Mozilla/5.0"}
+
+    print(f"🔎 Bing araması: {query}")
+    print(f"🌐 Bing URL: {url}")
 
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
 
-    for a in soup.select("a"):
-        href = a.get("href", "")
-        if "epey.com" in href and "/url?q=" in href:
-            link = href.split("/url?q=")[-1].split("&")[0]
-            return link
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        if "epey.com" in href and href.startswith("https://www.epey.com/"):
+            print(f"✅ Epey linki bulundu: {href}")
+            return href
     return None
 
 def capture_epey_screenshot(driver, title_or_url, save_path="epey.png"):
@@ -42,7 +45,8 @@ def capture_epey_screenshot(driver, title_or_url, save_path="epey.png"):
         if title_or_url.startswith("https://www.epey.com/"):
             url = title_or_url
         else:
-            url = f"https://www.epey.com/arama/?q={title_or_url.replace(' ', '+')}"
+            normalized = normalize_title_for_epey(title_or_url)
+            url = f"https://www.epey.com/arama/?q={normalized.replace(' ', '+')}"
 
         driver.get(url)
         WebDriverWait(driver, 10).until(
@@ -256,7 +260,7 @@ def run():
         for p in products_to_send:
             send_message(p)  # Amazon mesajı + görseli
 
-            epey_url = get_epey_url_from_google(p["title"])
+            epey_url = get_epey_url_from_bing(p["title"])
             if epey_url:
                 epey_image = capture_epey_screenshot(driver_epey, epey_url)
                 if epey_image:
