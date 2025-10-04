@@ -2,6 +2,8 @@ import os
 import json
 import time
 import base64
+import requests
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -10,10 +12,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from telegram_cep import send_message, send_epey_image
-def get_epey_url_from_google(title):
-    import requests
-    from bs4 import BeautifulSoup
 
+def get_epey_url_from_google(title):
     query = f"{title} site:epey.com"
     url = f"https://www.google.com/search?q={query.replace(' ', '+')}"
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -27,12 +27,13 @@ def get_epey_url_from_google(title):
             link = href.split("/url?q=")[-1].split("&")[0]
             return link
     return None
+
 def capture_epey_screenshot(driver, title_or_url, save_path="epey.png"):
     try:
         if title_or_url.startswith("https://www.epey.com/"):
             url = title_or_url
         else:
-            url = get_epey_search_url(title_or_url)
+            url = f"https://www.epey.com/arama/?q={title_or_url.replace(' ', '+')}"
 
         driver.get(url)
         WebDriverWait(driver, 10).until(
@@ -240,25 +241,25 @@ def run():
             products_to_send.append(product)
             sent_data[asin] = price
 
-        if products_to_send:
-            driver_epey = get_driver()  # Epey için ayrı driver
+    if products_to_send:
+        driver_epey = get_driver()  # Epey için ayrı driver
 
-            for p in products_to_send:
-                send_message(p)  # Amazon mesajı + görseli
+        for p in products_to_send:
+            send_message(p)  # Amazon mesajı + görseli
 
-                epey_url = get_epey_url_from_google(p["title"])
-                if epey_url:
-                    epey_image = capture_epey_screenshot(driver_epey, epey_url)
-                    if epey_image:
-                        send_epey_image(p, epey_image)
-                else:
-                    print(f"⚠️ Epey linki bulunamadı: {p['title']}")
+            epey_url = get_epey_url_from_google(p["title"])
+            if epey_url:
+                epey_image = capture_epey_screenshot(driver_epey, epey_url)
+                if epey_image:
+                    send_epey_image(p, epey_image)
+            else:
+                print(f"⚠️ Epey linki bulunamadı: {p['title']}")
 
-            driver_epey.quit()
-            save_sent_data(sent_data)
-            print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
-        else:
-            print("⚠️ Yeni veya indirimli ürün bulunamadı.")
+        driver_epey.quit()
+        save_sent_data(sent_data)
+        print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
+    else:
+        print("⚠️ Yeni veya indirimli ürün bulunamadı.")
 
-    if __name__ == "__main__":
-        run()
+if __name__ == "__main__":
+    run()
