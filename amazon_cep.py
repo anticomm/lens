@@ -236,4 +236,6 @@ def run():
         driver_epey.quit()
         save_sent_data(sent_data)
         print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
-    else
+    else:
+        print("⚠️ Yeni veya indirimli ürün bulunamadı.")
+
