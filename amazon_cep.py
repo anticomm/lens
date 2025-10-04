@@ -16,12 +16,25 @@ def get_epey_search_url(title):
     return base + title.replace(" ", "+")
 
 def capture_epey_screenshot(driver, title, save_path="epey.png"):
+    from selenium.webdriver.common.keys import Keys
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+
     try:
-        url = get_epey_search_url(title)
-        driver.get(url)
-        time.sleep(2)
+        driver.get("https://www.epey.com/")
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "ara"))
+        )
+
+        input_box = driver.find_element(By.ID, "ara")
+        input_box.clear()
+        input_box.send_keys(title)
+        input_box.send_keys(Keys.ENTER)
+
+        time.sleep(2)  # Sayfanın yüklenmesini bekle
         driver.save_screenshot(save_path)
         return save_path
+
     except Exception as e:
         print(f"⚠️ Epey ekran görüntüsü alınamadı: {e}")
         return None
