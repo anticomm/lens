@@ -240,25 +240,25 @@ def run():
             products_to_send.append(product)
             sent_data[asin] = price
 
-    if products_to_send:
-    driver_epey = get_driver()  # Epey için ayrı driver
+        if products_to_send:
+            driver_epey = get_driver()  # Epey için ayrı driver
 
-    for p in products_to_send:
-        send_message(p)  # Amazon mesajı + görseli
+            for p in products_to_send:
+                send_message(p)  # Amazon mesajı + görseli
 
-        epey_url = get_epey_url_from_google(p["title"])
-        if epey_url:
-            epey_image = capture_epey_screenshot(driver_epey, epey_url)
-            if epey_image:
-                send_epey_image(p, epey_image)
+                epey_url = get_epey_url_from_google(p["title"])
+                if epey_url:
+                    epey_image = capture_epey_screenshot(driver_epey, epey_url)
+                    if epey_image:
+                        send_epey_image(p, epey_image)
+                else:
+                    print(f"⚠️ Epey linki bulunamadı: {p['title']}")
+
+            driver_epey.quit()
+            save_sent_data(sent_data)
+            print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
         else:
-            print(f"⚠️ Epey linki bulunamadı: {p['title']}")
+            print("⚠️ Yeni veya indirimli ürün bulunamadı.")
 
-    driver_epey.quit()
-    save_sent_data(sent_data)
-    print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
-else:
-    print("⚠️ Yeni veya indirimli ürün bulunamadı.")
-
-if __name__ == "__main__":
-    run()
+    if __name__ == "__main__":
+        run()
