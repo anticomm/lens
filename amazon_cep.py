@@ -17,7 +17,9 @@ from telegram_cep import send_message, send_epey_image
 def normalize_title_for_epey(title):
     title = title.lower()
     title = re.sub(r"\(.*?\)", "", title)
-    title = re.sub(r"[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ\s\-]", "", title)
+    title = re.sub(r"\d{2,4}\s*x\s*\d{2,4}", "", title)  # boyutları sil
+    title = re.sub(r"\b(eos r|zoom|lens|objektif|siyah|renkli|mm|cm|x)\b", "", title)
+    title = re.sub(r"[^a-zA-Z0-9ğüşıöç\s\-\.]", "", title)
     title = re.sub(r"\s+", " ", title).strip()
     return title
 
