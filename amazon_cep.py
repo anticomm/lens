@@ -17,7 +17,7 @@ def normalize_title_for_epey(title):
     title = title.lower()
     title = re.sub(r"\(.*?\)", "", title)  # parantez içini sil
     title = re.sub(r"\d{2,4}[.,]?\d{0,2}\s*x\s*\d{2,4}[.,]?\d{0,2}", "", title)  # boyutları sil (virgül/nokta dahil)
-    title = re.sub(r"\b(eos r|zoom|lens|lensi|objektif|siyah|renkli|motoru|görüntü|sabitleyici|mm|site:epey.com)\b", "", title)
+    title = re.sub(r"\b(eos r|zoom|lens|lensi|objektif|siyah|renkli|motoru|görüntü|sabitleyici|mm|epey.com)\b", "", title)
     title = re.sub(r"[^\w\s\.\-]", "", title)  # sadece kelime, boşluk, nokta ve tire kalsın
     title = re.sub(r"\s+", " ", title).strip()
     return title
@@ -25,7 +25,7 @@ def normalize_title_for_epey(title):
 
 def get_epey_url_from_artado(title):
     normalized = normalize_title_for_epey(title)
-    query = f"{normalized} site:epey.com"
+    query = f"{normalized} epey.com"
     url = f"https://www.artado.com/search?q={query.replace(' ', '+')}"
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115 Safari/537.36"
