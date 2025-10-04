@@ -224,12 +224,20 @@ def run():
             sent_data[asin] = price
 
     if products_to_send:
-        for p in products_to_send:
-            send_message(p)
-        save_sent_data(sent_data)
-        print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
-    else:
-        print("⚠️ Yeni veya indirimli ürün bulunamadı.")
+    driver_akakce = get_driver()  # Akakçe için ayrı driver
+
+    for p in products_to_send:
+        send_message(p)  # Amazon mesajı + görseli
+
+        akakce_image = capture_akakce_screenshot(driver_akakce, p["title"])
+        if akakce_image:
+            send_akakce_image(p, akakce_image)
+
+    driver_akakce.quit()
+    save_sent_data(sent_data)
+    print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
+else:
+    print("⚠️ Yeni veya indirimli ürün bulunamadı.")
 
 if __name__ == "__main__":
     run()
