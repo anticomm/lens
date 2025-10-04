@@ -21,6 +21,7 @@ def normalize_title_for_epey(title):
     title = re.sub(r"\b(eos r|zoom|lens|objektif|siyah|renkli|mm|cm|x)\b", "", title)
     title = re.sub(r"[^a-zA-Z0-9ğüşıöç\s\-\.]", "", title)
     title = re.sub(r"\s+", " ", title).strip()
+    title = re.sub(r"\b\d{3,4}\b", "", title)  # 3-4 haneli sayıları sil
     return title
 
 def get_epey_url_from_artado(title):
