@@ -24,6 +24,9 @@ def normalize_title_for_epey(title):
 
 
 def get_epey_url_from_artado(title):
+    import requests
+    from bs4 import BeautifulSoup
+
     normalized = normalize_title_for_epey(title)
     query = f"{normalized} epey.com"
     url = f"https://www.artado.com/search?q={query.replace(' ', '+')}"
@@ -35,9 +38,9 @@ def get_epey_url_from_artado(title):
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
 
-    for a in soup.find_all("a", href=True):
+    for a in soup.select("a.gs-title[href*='epey.com']"):
         href = a["href"]
-        if "epey.com" in href and href.startswith("https://www.epey.com/"):
+        if href.startswith("https://www.epey.com/"):
             print(f"✅ Epey linki bulundu: {href}")
             return href
     print(f"⚠️ Epey linki bulunamadı: {title}")
