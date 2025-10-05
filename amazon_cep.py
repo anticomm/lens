@@ -7,6 +7,7 @@ import urllib.parse
 import re
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
@@ -21,6 +22,8 @@ SENT_FILE = "send_products.txt"
 def normalize_title(title):
     title = title.lower()
     title = re.sub(r"\(.*?\)", "", title)
+    title = re.sub(r"\b(f\d+(\.\d+)?(-\d+(\.\d+)?)?)\b", "", title)
+    title = re.sub(r"\b(is|stm|af|rf|ef|eos|zoom|lens|motoru|optik|siyah)\b", "", title)
     title = re.sub(r"[^\w\s]", " ", title)
     title = re.sub(r"\s+", " ", title).strip()
     return title
@@ -119,20 +122,22 @@ def get_final_price(driver, link):
         except:
             pass
         return None
-def get_epey_search_url(title):
-    base = "https://www.epey.com/arama/?q="
-    return base + urllib.parse.quote_plus(title.strip())
-
-def capture_epey_screenshot_direct(driver, title, save_path="epey.png"):
+def capture_epey_screenshot_interactive(driver, title, save_path="epey.png"):
     try:
-        clean_title = normalize_title(title)  # 👈 başlık sadeleştiriliyor
-        url = get_epey_search_url(clean_title)
-        driver.get(url)
-        time.sleep(10)
+        clean_title = normalize_title(title)
+        driver.get("https://www.epey.com/arama/")
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "search_input")))
+
+        input_box = driver.find_element(By.ID, "search_input")
+        input_box.clear()
+        input_box.send_keys(clean_title)
+        input_box.send_keys(Keys.ENTER)
+
+        time.sleep(5)
         driver.save_screenshot(save_path)
         return save_path
     except Exception as e:
-        print(f"⚠️ Epey doğrudan ekran görüntüsü alınamadı: {e}")
+        print(f"⚠️ Epey etkileşimli arama ekran görüntüsü alınamadı: {e}")
         return None
 
 def load_sent_data():
@@ -245,7 +250,7 @@ def run():
 
     for p in products_to_send:
         send_message(p)
-        epey_image = capture_epey_screenshot_direct(driver, p["title"])
+        epey_image = capture_epey_screenshot_interactive(driver, p["title"])
         if epey_image:
             send_epey_image(p, epey_image)
 
