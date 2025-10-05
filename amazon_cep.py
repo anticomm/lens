@@ -101,29 +101,22 @@ def get_final_price(driver, link):
         except:
             pass
         return None
-def get_epey_link_via_google(driver, title):
+def get_epey_link_via_brave(driver, title):
     try:
         query = f"{title} site:epey.com"
-        driver.get("https://www.google.com/")
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "q")))
-
-        input_box = driver.find_element(By.NAME, "q")
-        input_box.clear()
-        input_box.send_keys(query)
-        input_box.send_keys(Keys.RETURN)
-
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "search")))
-        links = driver.find_elements(By.CSS_SELECTOR, "div#search a")
+        url = f"https://search.brave.com/search?q={urllib.parse.quote_plus(query)}"
+        driver.get(url)
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "a.result-link")))
+        links = driver.find_elements(By.CSS_SELECTOR, "a.result-link")
         epey_links = [a.get_attribute("href") for a in links if a.get_attribute("href") and "epey.com" in a.get_attribute("href")]
-
         return epey_links[0] if epey_links else None
     except Exception as e:
-        print(f"⚠️ Google üzerinden Epey linki alınamadı: {e}")
+        print(f"⚠️ Brave üzerinden Epey linki alınamadı: {e}")
         return None
 
 def capture_epey_screenshot(driver, title, save_path="epey.png"):
     try:
-        epey_url = get_epey_link_via_google(driver, title)
+        epey_url = get_epey_link_via_brave(driver, title)
         if not epey_url:
             return None
         driver.get(epey_url)
