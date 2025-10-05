@@ -55,6 +55,7 @@ def get_driver():
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--window-size=1920,1080")
+    options.add_argument("--remote-debugging-port=9222")
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115 Safari/537.36")
     profile_dir = f"/tmp/chrome-profile-{uuid.uuid4()}"
     options.add_argument(f"--user-data-dir={profile_dir}")
@@ -236,9 +237,7 @@ def run():
             print(f"⚠️ Ürün parse hatası: {e}")
             continue
 
-    driver.quit()
     print(f"✅ {len(products)} ürün başarıyla alındı.")
-
     sent_data = load_sent_data()
     products_to_send = []
 
@@ -269,23 +268,18 @@ def run():
             products_to_send.append(product)
             sent_data[asin] = price
 
-    if products_to_send:
-        driver_epey = get_driver()
+    for p in products_to_send:
+        send_message(p)
+        epey_image = capture_epey_screenshot_via_google(driver, p["title"])
+        if not epey_image:
+            print("🔁 Google başarısız, Bing deneniyor...")
+            epey_image = capture_epey_screenshot_via_bing(driver, p["title"])
+        if epey_image:
+            send_epey_image(p, epey_image)
 
-        for p in products_to_send:
-            send_message(p)
-            epey_image = capture_epey_screenshot_via_google(driver_epey, p["title"])
-            if not epey_image:
-                print("🔁 Google başarısız, Bing deneniyor...")
-                epey_image = capture_epey_screenshot_via_bing(driver_epey, p["title"])
-            if epey_image:
-                send_epey_image(p, epey_image)
-
-        driver_epey.quit()
-        save_sent_data(sent_data)
-        print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
-    else:
-        print("⚠️ Yeni veya indirimli ürün bulunamadı.")
+    save_sent_data(sent_data)
+    driver.quit()
+    print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
 
 if __name__ == "__main__":
     run()
