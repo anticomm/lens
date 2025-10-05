@@ -26,7 +26,7 @@ def capture_epey_screenshot(driver, title, save_path="epey.png"):
         short_title = title[:35].strip()
 
         driver.get("https://www.epey.com/")
-        WebDriverWait(driver, 10).until(
+        WebDriverWait(driver, 15).until(
             EC.presence_of_element_located((By.ID, "ara"))
         )
 
@@ -35,8 +35,8 @@ def capture_epey_screenshot(driver, title, save_path="epey.png"):
         input_box.send_keys(short_title)
         input_box.send_keys(Keys.RETURN)
 
-        # Arama sonrası 10 saniye bekle
-        time.sleep(10)
+        # Arama sonrası 15 saniye bekle
+        time.sleep(15)
 
         driver.save_screenshot(save_path)
         return save_path
