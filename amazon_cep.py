@@ -10,7 +10,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 from telegram_cep import send_message, send_epey_image
 
@@ -60,9 +59,9 @@ def get_driver():
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115 Safari/537.36")
     profile_dir = f"/tmp/chrome-profile-{uuid.uuid4()}"
     options.add_argument(f"--user-data-dir={profile_dir}")
+
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
-    # 👇 Bot algısını azaltmak için sahteleme burada
     driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
         "source": """
             Object.defineProperty(navigator, 'webdriver', {
@@ -72,7 +71,6 @@ def get_driver():
     })
 
     return driver
-
 
 def get_used_price_from_item(item):
     try:
@@ -113,31 +111,19 @@ def get_final_price(driver, link):
         except:
             pass
         return None
-def get_epey_link_via_brave(driver, title):
-    try:
-        query = f"{title} site:epey.com"
-        url = f"https://search.brave.com/search?q={urllib.parse.quote_plus(query)}"
-        driver.get(url)
-        driver.save_screenshot("brave_debug.png")
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "a.result-link")))
-        links = driver.find_elements(By.CSS_SELECTOR, "a.result-link")
-        epey_links = [a.get_attribute("href") for a in links if a.get_attribute("href") and "epey.com" in a.get_attribute("href")]
-        return epey_links[0] if epey_links else None
-    except Exception as e:
-        print(f"⚠️ Brave üzerinden Epey linki alınamadı: {e}")
-        return None
+def get_epey_search_url(title):
+    base = "https://www.epey.com/arama/?q="
+    return base + urllib.parse.quote_plus(title.strip())
 
-def capture_epey_screenshot(driver, title, save_path="epey.png"):
+def capture_epey_screenshot_direct(driver, title, save_path="epey.png"):
     try:
-        epey_url = get_epey_link_via_brave(driver, title)
-        if not epey_url:
-            return None
-        driver.get(epey_url)
-        time.sleep(5)
+        url = get_epey_search_url(title)
+        driver.get(url)
+        time.sleep(10)
         driver.save_screenshot(save_path)
         return save_path
     except Exception as e:
-        print(f"⚠️ Epey ekran görüntüsü alınamadı: {e}")
+        print(f"⚠️ Epey doğrudan ekran görüntüsü alınamadı: {e}")
         return None
 
 def load_sent_data():
@@ -250,7 +236,7 @@ def run():
 
     for p in products_to_send:
         send_message(p)
-        epey_image = capture_epey_screenshot(driver, p["title"])
+        epey_image = capture_epey_screenshot_direct(driver, p["title"])
         if epey_image:
             send_epey_image(p, epey_image)
 
