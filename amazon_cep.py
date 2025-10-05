@@ -26,7 +26,7 @@ def capture_epey_screenshot(driver, title, save_path="epey.png"):
         short_title = title[:35].strip()
 
         driver.get("https://www.epey.com/")
-        WebDriverWait(driver, 15).until(
+        WebDriverWait(driver, 5).until(
             EC.presence_of_element_located((By.ID, "ara"))
         )
 
