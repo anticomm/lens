@@ -22,6 +22,9 @@ def capture_epey_screenshot(driver, title, save_path="epey.png"):
     from selenium.webdriver.common.by import By
 
     try:
+        # Sadece ilk 30 karakteri al (boşluk dahil)
+        short_title = title[:30].strip()
+
         driver.get("https://www.epey.com/")
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "ara"))
@@ -29,17 +32,12 @@ def capture_epey_screenshot(driver, title, save_path="epey.png"):
 
         input_box = driver.find_element(By.ID, "ara")
         input_box.clear()
-        input_box.send_keys(title)
+        input_box.send_keys(short_title)
+        input_box.send_keys(Keys.RETURN)
 
-        time.sleep(1)  # Yazma sonrası kısa bekleme
-        input_box.send_keys(Keys.RETURN)  # ENTER yerine RETURN daha stabil
+        # Arama sonrası 10 saniye bekle
+        time.sleep(10)
 
-        # Arama sonuçlarının yüklendiğini kontrol et
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "div.listing-item"))
-        )
-
-        time.sleep(2)  # Sayfa tam yüklenmeden ekran alınmasın
         driver.save_screenshot(save_path)
         return save_path
 
