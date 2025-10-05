@@ -105,6 +105,10 @@ def capture_epey_screenshot_via_google(driver, title, save_path="epey.png"):
         driver.get("https://www.google.com/")
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "q")))
 
+        if "name=\"q\"" not in driver.page_source:
+            print("⚠️ Google arama kutusu DOM’da görünmüyor.")
+            return None
+
         input_box = driver.find_element(By.NAME, "q")
         input_box.clear()
         input_box.send_keys(query)
@@ -125,6 +129,34 @@ def capture_epey_screenshot_via_google(driver, title, save_path="epey.png"):
 
     except Exception as e:
         print(f"⚠️ Google üzerinden Epey ekran görüntüsü alınamadı: {e}")
+        return None
+
+def capture_epey_screenshot_via_bing(driver, title, save_path="epey.png"):
+    try:
+        query = f"{title} site:epey.com"
+        driver.get("https://www.bing.com/")
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "q")))
+
+        input_box = driver.find_element(By.NAME, "q")
+        input_box.clear()
+        input_box.send_keys(query)
+        input_box.send_keys(Keys.RETURN)
+
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "b_content")))
+        links = driver.find_elements(By.CSS_SELECTOR, "li.b_algo h2 a")
+        epey_links = [a.get_attribute("href") for a in links if a.get_attribute("href") and "epey.com" in a.get_attribute("href")]
+
+        if not epey_links:
+            print("⚠️ Bing'de Epey linki bulunamadı.")
+            return None
+
+        driver.get(epey_links[0])
+        time.sleep(5)
+        driver.save_screenshot(save_path)
+        return save_path
+
+    except Exception as e:
+        print(f"⚠️ Bing üzerinden Epey ekran görüntüsü alınamadı: {e}")
         return None
 
 def load_sent_data():
@@ -243,6 +275,9 @@ def run():
         for p in products_to_send:
             send_message(p)
             epey_image = capture_epey_screenshot_via_google(driver_epey, p["title"])
+            if not epey_image:
+                print("🔁 Google başarısız, Bing deneniyor...")
+                epey_image = capture_epey_screenshot_via_bing(driver_epey, p["title"])
             if epey_image:
                 send_epey_image(p, epey_image)
 
