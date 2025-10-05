@@ -4,6 +4,7 @@ import time
 import base64
 import uuid
 import urllib.parse
+import re
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -16,6 +17,13 @@ from telegram_cep import send_message, send_epey_image
 URL = "https://www.amazon.com.tr/s?i=electronics&rh=n%3A13710137031%2Cp_36%3A-5000000%2Cp_123%3A359121%2Cp_n_g-101013615904111%3A68100078031%2Cp_98%3A21345978031%2Cp_n_condition-type%3A13818537031&dc&ds=v1%3A6sZpe%2FYE4bu2CESwIu9R1HeLmlpl8j6yDZ3GeYQEjJg"
 COOKIE_FILE = "cookie_cep.json"
 SENT_FILE = "send_products.txt"
+
+def normalize_title(title):
+    title = title.lower()
+    title = re.sub(r"\(.*?\)", "", title)
+    title = re.sub(r"[^\w\s]", " ", title)
+    title = re.sub(r"\s+", " ", title).strip()
+    return title
 
 def decode_cookie_from_env():
     cookie_b64 = os.getenv("COOKIE_B64")
@@ -117,7 +125,8 @@ def get_epey_search_url(title):
 
 def capture_epey_screenshot_direct(driver, title, save_path="epey.png"):
     try:
-        url = get_epey_search_url(title)
+        clean_title = normalize_title(title)  # 👈 başlık sadeleştiriliyor
+        url = get_epey_search_url(clean_title)
         driver.get(url)
         time.sleep(10)
         driver.save_screenshot(save_path)
