@@ -19,6 +19,7 @@ def capture_epey_screenshot(driver, title, save_path="epey.png"):
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.support.ui import WebDriverWait
     from selenium.webdriver.support import expected_conditions as EC
+    from selenium.webdriver.common.by import By
 
     try:
         driver.get("https://www.epey.com/")
@@ -29,9 +30,16 @@ def capture_epey_screenshot(driver, title, save_path="epey.png"):
         input_box = driver.find_element(By.ID, "ara")
         input_box.clear()
         input_box.send_keys(title)
-        input_box.send_keys(Keys.ENTER)
 
-        time.sleep(2)  # Sayfanın yüklenmesini bekle
+        time.sleep(1)  # Yazma sonrası kısa bekleme
+        input_box.send_keys(Keys.RETURN)  # ENTER yerine RETURN daha stabil
+
+        # Arama sonuçlarının yüklendiğini kontrol et
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "div.listing-item"))
+        )
+
+        time.sleep(2)  # Sayfa tam yüklenmeden ekran alınmasın
         driver.save_screenshot(save_path)
         return save_path
 
