@@ -23,7 +23,7 @@ def capture_epey_screenshot(driver, title, save_path="epey.png"):
 
     try:
         # Sadece ilk 30 karakteri al (boşluk dahil)
-        short_title = title[:30].strip()
+        short_title = title[:35].strip()
 
         driver.get("https://www.epey.com/")
         WebDriverWait(driver, 10).until(
