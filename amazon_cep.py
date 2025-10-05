@@ -8,42 +8,9 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 from telegram_cep import send_message, send_epey_image
-
-def get_epey_search_url(title):
-    base = "https://www.epey.com/arama/?q="
-    return base + title.replace(" ", "+")
-
-def capture_epey_screenshot(driver, title, save_path="epey.png"):
-    from selenium.webdriver.common.keys import Keys
-    from selenium.webdriver.support.ui import WebDriverWait
-    from selenium.webdriver.support import expected_conditions as EC
-    from selenium.webdriver.common.by import By
-
-    try:
-        # Sadece ilk 30 karakteri al (boşluk dahil)
-        short_title = title[:35].strip()
-
-        driver.get("https://www.epey.com/")
-        WebDriverWait(driver, 5).until(
-            EC.presence_of_element_located((By.ID, "ara"))
-        )
-
-        input_box = driver.find_element(By.ID, "ara")
-        input_box.clear()
-        input_box.send_keys(short_title)
-        input_box.send_keys(Keys.RETURN)
-
-        # Arama sonrası 15 saniye bekle
-        time.sleep(15)
-
-        driver.save_screenshot(save_path)
-        return save_path
-
-    except Exception as e:
-        print(f"⚠️ Epey ekran görüntüsü alınamadı: {e}")
-        return None
 
 URL = "https://www.amazon.com.tr/s?i=electronics&rh=n%3A13710137031%2Cp_36%3A-5000000%2Cp_123%3A359121%2Cp_n_g-101013615904111%3A68100078031%2Cp_98%3A21345978031%2Cp_n_condition-type%3A13818537031&dc&ds=v1%3A6sZpe%2FYE4bu2CESwIu9R1HeLmlpl8j6yDZ3GeYQEjJg"
 COOKIE_FILE = "cookie_cep.json"
@@ -83,7 +50,7 @@ def load_cookies(driver):
 
 def get_driver():
     options = Options()
-    options.add_argument("--headless=new")
+    # options.add_argument("--headless=new")  # test için kapalı
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--window-size=1920,1080")
@@ -96,8 +63,7 @@ def get_used_price_from_item(item):
             By.XPATH,
             ".//span[contains(text(), 'Diğer satın alma seçenekleri')]/following::span[contains(text(), 'TL')][1]"
         )
-        price = container.text.strip()
-        return price
+        return container.text.strip()
     except:
         return None
 
@@ -108,8 +74,7 @@ def get_used_price_from_detail(driver):
             "//div[contains(@class, 'a-column') and .//span[contains(text(), 'İkinci El Ürün Satın Al:')]]"
         )
         price_element = container.find_element(By.CLASS_NAME, "offer-price")
-        price = price_element.text.strip()
-        return price
+        return price_element.text.strip()
     except:
         return None
 
@@ -131,6 +96,38 @@ def get_final_price(driver, link):
         except:
             pass
         return None
+def normalize_title_for_epey(title):
+    import re
+    title = title.lower()
+    title = re.sub(r"\(.*?\)", "", title)
+    title = re.sub(r"\d{2,4}[.,]?\d{0,2}\s*x\s*\d{2,4}[.,]?\d{0,2}", "", title)
+    title = re.sub(r"\b(eos r|zoom|objektif|siyah|renkli|motoru|görüntü|sabitleyici|kit|mm)\b", "", title)
+    title = re.sub(r"[^\w\s\.\-]", "", title)
+    title = re.sub(r"\s+", " ", title).strip()
+
+    if "rf" in title and "mm" in title and "lens" not in title:
+        title += " lens"
+
+    return title[:30]
+
+def capture_epey_screenshot(driver, title, save_path="epey.png"):
+    try:
+        short_title = normalize_title_for_epey(title)
+        driver.get("https://www.epey.com/")
+        WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, "ara")))
+
+        input_box = driver.find_element(By.ID, "ara")
+        input_box.clear()
+        input_box.send_keys(short_title)
+        input_box.send_keys(Keys.RETURN)
+
+        time.sleep(15)
+        driver.save_screenshot(save_path)
+        return save_path
+
+    except Exception as e:
+        print(f"⚠️ Epey ekran görüntüsü alınamadı: {e}")
+        return None
 
 def load_sent_data():
     data = {}
@@ -147,6 +144,7 @@ def save_sent_data(updated_data):
     with open(SENT_FILE, "w", encoding="utf-8") as f:
         for asin, price in updated_data.items():
             f.write(f"{asin} | {price}\n")
+
 def run():
     if not decode_cookie_from_env():
         return
@@ -242,11 +240,10 @@ def run():
             sent_data[asin] = price
 
     if products_to_send:
-        driver_epey = get_driver()  # Epey için ayrı driver
+        driver_epey = get_driver()
 
         for p in products_to_send:
-            send_message(p)  # Amazon mesajı + görseli
-
+            send_message(p)
             epey_image = capture_epey_screenshot(driver_epey, p["title"])
             if epey_image:
                 send_epey_image(p, epey_image)
