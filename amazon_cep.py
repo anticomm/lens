@@ -106,6 +106,7 @@ def get_epey_link_via_brave(driver, title):
         query = f"{title} site:epey.com"
         url = f"https://search.brave.com/search?q={urllib.parse.quote_plus(query)}"
         driver.get(url)
+        driver.save_screenshot("brave_debug.png")
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "a.result-link")))
         links = driver.find_elements(By.CSS_SELECTOR, "a.result-link")
         epey_links = [a.get_attribute("href") for a in links if a.get_attribute("href") and "epey.com" in a.get_attribute("href")]
