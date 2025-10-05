@@ -2,6 +2,7 @@ import os
 import json
 import time
 import base64
+import uuid
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -50,11 +51,14 @@ def load_cookies(driver):
 
 def get_driver():
     options = Options()
-    # options.add_argument("--headless=new")  # test için kapalı
+    options.add_argument("--headless=new")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--window-size=1920,1080")
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115 Safari/537.36")
+    # Benzersiz profil dizini ile çakışma engellenir
+    profile_dir = f"/tmp/chrome-profile-{uuid.uuid4()}"
+    options.add_argument(f"--user-data-dir={profile_dir}")
     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 def get_used_price_from_item(item):
