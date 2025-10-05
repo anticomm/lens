@@ -60,7 +60,19 @@ def get_driver():
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115 Safari/537.36")
     profile_dir = f"/tmp/chrome-profile-{uuid.uuid4()}"
     options.add_argument(f"--user-data-dir={profile_dir}")
-    return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
+    # 👇 Bot algısını azaltmak için sahteleme burada
+    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+        "source": """
+            Object.defineProperty(navigator, 'webdriver', {
+              get: () => undefined
+            })
+        """
+    })
+
+    return driver
+
 
 def get_used_price_from_item(item):
     try:
