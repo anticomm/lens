@@ -73,6 +73,10 @@ def send_message(product):
             print(f"❌ Gönderim hatası: {product.get('title', 'Ürün')} → {response.status_code} {response.text}")
     except Exception as e:
         print(f"❌ Telegram gönderim hatası: {e}")
+def send_epey_link(product: dict, link: str):
+    title = product["title"]
+    message = f"🔍 Epey sayfası bulunamadı.\n🧭 Arama linki: {link}\n📦 Ürün: {title}"
+    send_message(message)
 
 def send_epey_image(product, epey_image_path):
     token = os.getenv("BOT_TOKEN")
