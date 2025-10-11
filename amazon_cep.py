@@ -249,12 +249,11 @@ def run():
             products_to_send.append(product)
             sent_data[asin] = price
 
+    from capture import run_capture
+
     for p in products_to_send:
         send_message(p)
-        epey_image = capture_epey_screenshot_interactive(driver, p["title"])
-        if epey_image:
-            send_epey_image(p, epey_image)
-
+        run_capture(p)
     save_sent_data(sent_data)
     driver.quit()
     print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
