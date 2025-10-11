@@ -3,7 +3,6 @@ import json
 import time
 import base64
 import uuid
-import urllib.parse
 import re
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -21,9 +20,6 @@ SENT_FILE = "send_products.txt"
 
 def normalize_title(title):
     title = title.lower()
-    title = re.sub(r"\(.*?\)", "", title)
-    title = re.sub(r"\b(f\d+(\.\d+)?(-\d+(\.\d+)?)?)\b", "", title)
-    title = re.sub(r"\b(is|stm|af|rf|ef|eos|zoom|lens|motoru|optik|siyah)\b", "", title)
     title = re.sub(r"[^\w\s]", " ", title)
     title = re.sub(r"\s+", " ", title).strip()
     return title
@@ -122,6 +118,7 @@ def get_final_price(driver, link):
         except:
             pass
         return None
+
 def capture_epey_screenshot_interactive(driver, title, save_path="epey.png"):
     try:
         clean_title = normalize_title(title)
@@ -133,13 +130,17 @@ def capture_epey_screenshot_interactive(driver, title, save_path="epey.png"):
         input_box.send_keys(clean_title)
         input_box.send_keys(Keys.ENTER)
 
-        time.sleep(9)
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".urunliste")))
+
+        if "Üzgünüz" in driver.page_source or "arama sonucu bulunamadı" in driver.page_source:
+            print(f"⚠️ Epey'de sonuç bulunamadı: {clean_title}")
+            return None
+
         driver.save_screenshot(save_path)
         return save_path
     except Exception as e:
-        print(f"⚠️ Epey etkileşimli arama ekran görüntüsü alınamadı: {e}")
+        print(f"⚠️ Epey ekran görüntüsü hatası: {e}")
         return None
-
 def load_sent_data():
     data = {}
     if os.path.exists(SENT_FILE):
