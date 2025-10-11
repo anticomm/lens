@@ -1,5 +1,7 @@
 import os
 import time
+import json
+import base64
 import requests
 import re
 from selenium import webdriver
@@ -17,6 +19,34 @@ def normalize_title(title):
     title = re.sub(r"[^\w\s]", " ", title)
     title = re.sub(r"\s+", " ", title).strip()
     return title
+
+def decode_cookie2_from_env():
+    cookie_b64 = os.getenv("COOKIE2_B64")
+    if not cookie_b64:
+        print("❌ COOKIE2_B64 bulunamadı.")
+        return False
+    try:
+        decoded = base64.b64decode(cookie_b64)
+        with open("epey_cookie.json", "wb") as f:
+            f.write(decoded)
+        print("✅ Epey cookie dosyası oluşturuldu.")
+        return True
+    except Exception as e:
+        print(f"❌ Cookie decode hatası: {e}")
+        return False
+
+def load_epey_cookies(driver):
+    if not os.path.exists("epey_cookie.json"):
+        print("⚠️ epey_cookie.json bulunamadı, cookie yüklenemedi.")
+        return
+    try:
+        with open("epey_cookie.json", "r") as f:
+            cookies = json.load(f)
+        for cookie in cookies:
+            driver.add_cookie(cookie)
+        print("✅ Cookie tarayıcıya yüklendi.")
+    except Exception as e:
+        print(f"❌ Cookie yükleme hatası: {e}")
 
 def get_driver():
     try:
@@ -67,6 +97,9 @@ def capture_epey_screenshot(url: str, save_path="epey.png"):
         print("❌ Tarayıcı başlatılamadı, ekran görüntüsü atlanıyor")
         return None
     try:
+        driver.get("https://www.epey.com/")
+        decode_cookie2_from_env()
+        load_epey_cookies(driver)
         driver.get(url)
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "body")))
         time.sleep(2)
