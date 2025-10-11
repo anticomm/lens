@@ -91,5 +91,5 @@ def run_capture(product: dict):
             print(f"⚠️ Epey sayfası açıldı ama ekran görüntüsü alınamadı: {epey_url}")
             send_epey_link(product, epey_url)
     else:
-        search_url = f"https://cse.google.com/cse?cx=44a7591784d2940f5&q={normalize_title(title).replace(' ', '+')}"
+        search_url = f"https://cse.google.com/cse?cx=44a7591784d2940f5&q={normalize_title(title).replace(' ', '+')}+epey"
         send_epey_link(product, search_url)
