@@ -236,16 +236,7 @@ def run():
     if products_to_send:
         for p in products_to_send:
             send_message(p)
-            epey_url = find_epey_link(p["title"])
-            if epey_url:
-                screenshot_path = capture_epey_screenshot(epey_url, save_path=f"epey_{p.get('asin', 'fallback')}.png")
-                if screenshot_path:
-                    send_epey_image(p, screenshot_path)
-                else:
-                    send_epey_link(p, epey_url)
-            else:
-                fallback_url = f"https://cse.google.com/cse?cx=44a7591784d2940f5&q={normalize_title(p['title']).replace(' ', '+')}+epey"
-                send_epey_link(p, fallback_url)
+            run_capture(p)
         save_sent_data(sent_data)
         print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
     else:
