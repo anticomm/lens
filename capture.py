@@ -58,7 +58,30 @@ def find_epey_link(product_name: str) -> str:
                     return link
     except Exception as e:
         print(f"⚠️ Google CSE hatası: {e}")
+
     print(f"❌ Epey linki bulunamadı: {product_name}")
+    return find_epey_link_via_page(product_name)
+
+def find_epey_link_via_page(product_name: str) -> str:
+    query = f"{normalize_title(product_name)} epey"
+    url = f"https://cse.google.com/cse?cx=44a7591784d2940f5&q={query.replace(' ', '+')}"
+    driver = get_driver()
+    if not driver:
+        print("❌ Tarayıcı başlatılamadı, fallback link alınamadı")
+        return None
+    try:
+        driver.get(url)
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "a")))
+        links = driver.find_elements(By.CSS_SELECTOR, "a")
+        for link in links:
+            href = link.get_attribute("href")
+            if href and "epey.com" in href:
+                print(f"🔗 Sayfa üzerinden Epey link bulundu: {href}")
+                driver.quit()
+                return href
+    except Exception as e:
+        print(f"⚠️ Sayfa üzerinden Epey linki alınamadı: {e}")
+    driver.quit()
     return None
 
 def capture_epey_screenshot(url: str, save_path="epey.png"):
