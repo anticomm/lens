@@ -23,7 +23,7 @@ def get_driver():
         path = ChromeDriverManager().install()
         print(f"🧪 Chrome driver path: {path}")
         options = Options()
-        options.add_argument("--headless")  # klasik headless
+        options.add_argument("--headless=new")
         options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
         options.add_argument("--window-size=1920,1080")
@@ -36,10 +36,9 @@ def get_driver():
         return None
 
 def find_epey_link(product_name: str) -> str:
-    api_key = os.environ["GOOGLE_API_KEY"]
-    cse_id = os.environ["CSE_ID"]
-    clean_title = normalize_title(product_name)
-    query = f"{clean_title} epey"
+    api_key = os.environ.get("GOOGLE_API_KEY")
+    cse_id = os.environ.get("CSE_ID")
+    query = f"{normalize_title(product_name)} epey"
 
     url = "https://www.googleapis.com/customsearch/v1"
     params = {
@@ -48,63 +47,34 @@ def find_epey_link(product_name: str) -> str:
         "q": query
     }
 
-    response = requests.get(url, params=params)
-    data = response.json()
-
-    if "items" in data:
-        for item in data["items"]:
-            link = item.get("link", "")
-            if "epey.com" in link:
-                return link
-    print(f"⚠️ Epey linki bulunamadı: {product_name}")
+    try:
+        response = requests.get(url, params=params)
+        data = response.json()
+        if "items" in data:
+            for item in data["items"]:
+                link = item.get("link", "")
+                if "epey.com" in link:
+                    print(f"🔗 Epey link bulundu: {link}")
+                    return link
+    except Exception as e:
+        print(f"⚠️ Google CSE hatası: {e}")
+    print(f"❌ Epey linki bulunamadı: {product_name}")
     return None
 
-def capture_epey_screenshot(epey_url: str, save_path="epey.png"):
+def capture_epey_screenshot(url: str, save_path="epey.png"):
     driver = get_driver()
     if not driver:
         print("❌ Tarayıcı başlatılamadı, ekran görüntüsü atlanıyor")
         return None
     try:
-        driver.get(epey_url)
+        driver.get(url)
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "body")))
         time.sleep(2)
-
-        if "arama" in epey_url or "search" in epey_url or "arama-sonucu" in driver.page_source:
-            print(f"⚠️ Sayfa arama sonucu içeriyor: {epey_url}")
-            driver.quit()
-            return None
-
         driver.save_screenshot(save_path)
         driver.quit()
         return save_path
     except Exception as e:
         print(f"⚠️ Epey ekran görüntüsü hatası: {e}")
-        driver.quit()
-        return None
-
-def capture_epey_fallback(title: str, asin: str) -> str:
-    driver = get_driver()
-    if not driver:
-        print("❌ Tarayıcı başlatılamadı, fallback atlanıyor")
-        return None
-    try:
-        driver.get("https://www.epey.com/arama/")
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "search_input")))
-
-        input_box = driver.find_element(By.ID, "search_input")
-        input_box.clear()
-        input_box.send_keys(title)
-        input_box.submit()
-
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".urunliste, .arama-sonucu")))
-        time.sleep(2)
-
-        fallback_path = f"epey_fallback_{asin}.png"
-        driver.save_screenshot(fallback_path)
-        driver.quit()
-        return fallback_path
-    except Exception as e:
-        print(f"⚠️ Fallback ekran görüntüsü hatası: {e}")
         driver.quit()
         return None
 
@@ -117,16 +87,9 @@ def run_capture(product: dict):
         screenshot_path = capture_epey_screenshot(epey_url, save_path=f"epey_{asin}.png")
         if screenshot_path:
             send_epey_image(product, screenshot_path)
-            return
         else:
             print(f"⚠️ Epey sayfası açıldı ama ekran görüntüsü alınamadı: {epey_url}")
             send_epey_link(product, epey_url)
-            return
-
-    print(f"🔄 Epey linki bulunamadı, arama sayfasına geçiliyor: {title}")
-    fallback_path = capture_epey_fallback(title, asin)
-    if fallback_path:
-        send_epey_image(product, fallback_path)
     else:
-        search_url = f"https://www.epey.com/arama/?q={normalize_title(title).replace(' ', '+')}"
+        search_url = f"https://cse.google.com/cse?cx=44a7591784d2940f5&q={normalize_title(title).replace(' ', '+')}"
         send_epey_link(product, search_url)
