@@ -1,10 +1,11 @@
+
 import os
 import requests
 
 def format_product_message(product):
     title = product.get("title", "🛍️ Ürün adı bulunamadı")
     price = product.get("price", "Fiyat alınamadı")
-    old_price = product.get("old_price", "")
+    old_price = product.get("old_price", "")  # 👈 Yeni satır
     link = product.get("link", "#")
     discount = product.get("discount", "")
     rating = product.get("rating", "")
@@ -73,27 +74,3 @@ def send_message(product):
             print(f"❌ Gönderim hatası: {product.get('title', 'Ürün')} → {response.status_code} {response.text}")
     except Exception as e:
         print(f"❌ Telegram gönderim hatası: {e}")
-def send_epey_link(product: dict, link: str):
-    title = product["title"]
-    message = f"🔍 Epey sayfası bulunamadı.\n🧭 Arama linki: {link}\n📦 Ürün: {title}"
-    send_message(message)
-
-def send_epey_image(product, epey_image_path):
-    token = os.getenv("BOT_TOKEN")
-    chat_id = os.getenv("CHAT_ID")
-    base_url = f"https://api.telegram.org/bot{token}"
-
-    title = product.get("title", "Ürün")
-    caption = f"📊 Epey karşılaştırması: *{title}*"
-
-    try:
-        with open(epey_image_path, "rb") as img:
-            files = {"photo": img}
-            data = {"chat_id": chat_id, "caption": caption, "parse_mode": "Markdown"}
-            response = requests.post(f"{base_url}/sendPhoto", data=data, files=files)
-        if response.status_code == 200:
-            print(f"✅ Epey görseli gönderildi: {title}")
-        else:
-            print(f"❌ Epey görsel hatası: {title} → {response.status_code} {response.text}")
-    except Exception as e:
-        print(f"❌ Epey görsel gönderim hatası: {e}")
