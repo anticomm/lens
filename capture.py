@@ -1,4 +1,3 @@
-# capture.py
 import os
 import time
 import requests
@@ -23,7 +22,7 @@ def get_driver():
 def find_epey_link(product_name: str) -> str:
     api_key = os.environ["GOOGLE_API_KEY"]
     cse_id = os.environ["CSE_ID"]
-    query = f"{product_name} site:epey.com"
+    query = f"{product_name} epey"  # Sadece 'epey' kelimesi eklendi
 
     url = "https://www.googleapis.com/customsearch/v1"
     params = {
