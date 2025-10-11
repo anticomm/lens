@@ -133,7 +133,7 @@ def capture_epey_screenshot_interactive(driver, title, save_path="epey.png"):
         input_box.send_keys(clean_title)
         input_box.send_keys(Keys.ENTER)
 
-        time.sleep(5)
+        time.sleep(9)
         driver.save_screenshot(save_path)
         return save_path
     except Exception as e:
