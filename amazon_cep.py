@@ -1,28 +1,22 @@
+import time, os, requests
+start = time.time()
 import os
 import json
 import time
 import base64
-import uuid
 import re
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
-from telegram_cep import send_message, send_epey_image
+from telegram_cep import send_message
 
 URL = "https://www.amazon.com.tr/s?i=electronics&rh=n%3A13710137031%2Cp_36%3A-5000000%2Cp_123%3A359121%2Cp_n_g-101013615904111%3A68100078031%2Cp_98%3A21345978031%2Cp_n_condition-type%3A13818537031&dc&ds=v1%3A6sZpe%2FYE4bu2CESwIu9R1HeLmlpl8j6yDZ3GeYQEjJg"
 COOKIE_FILE = "cookie_cep.json"
 SENT_FILE = "send_products.txt"
-
-def normalize_title(title):
-    title = title.lower()
-    title = re.sub(r"[^\w\s]", " ", title)
-    title = re.sub(r"\s+", " ", title).strip()
-    return title
 
 def decode_cookie_from_env():
     cookie_b64 = os.getenv("COOKIE_B64")
@@ -40,6 +34,7 @@ def decode_cookie_from_env():
         return False
 
 def load_cookies(driver):
+    check_timeout()
     if not os.path.exists(COOKIE_FILE):
         print("❌ Cookie dosyası eksik.")
         return
@@ -55,37 +50,43 @@ def load_cookies(driver):
             })
         except Exception as e:
             print(f"⚠️ Cookie eklenemedi: {cookie.get('name')} → {e}")
-
+def check_timeout():
+    if time.time() - start > 180:
+        print("⏱️ Süre doldu, zincir devam ediyor.")
+        try:
+            requests.post(
+                "https://api.github.com/repos/anticomm/depo_dzst-/actions/workflows/scraperb.yml/dispatches",
+                headers={
+                    "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+                    "Accept": "application/vnd.github.v3+json"
+                },
+                json={"ref": "master"}
+            )
+            print("📡 Scraper B tetiklendi.")
+        except Exception as e:
+            print(f"❌ Scraper B tetiklenemedi: {e}")
+        exit()
 def get_driver():
+    check_timeout()
     options = Options()
     options.add_argument("--headless=new")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--window-size=1920,1080")
-    options.add_argument("--remote-debugging-port=9222")
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115 Safari/537.36")
-    profile_dir = f"/tmp/chrome-profile-{uuid.uuid4()}"
-    options.add_argument(f"--user-data-dir={profile_dir}")
-
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-
-    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
-        "source": """
-            Object.defineProperty(navigator, 'webdriver', {
-              get: () => undefined
-            })
-        """
-    })
-
-    return driver
-
+    return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+def scroll_page(driver, pause=1.5, steps=5):
+    for _ in range(steps):
+        driver.execute_script("window.scrollBy(0, 1000);")
+        time.sleep(pause)
 def get_used_price_from_item(item):
     try:
         container = item.find_element(
             By.XPATH,
             ".//span[contains(text(), 'Diğer satın alma seçenekleri')]/following::span[contains(text(), 'TL')][1]"
         )
-        return container.text.strip()
+        price = container.text.strip()
+        return price
     except:
         return None
 
@@ -96,7 +97,8 @@ def get_used_price_from_detail(driver):
             "//div[contains(@class, 'a-column') and .//span[contains(text(), 'İkinci El Ürün Satın Al:')]]"
         )
         price_element = container.find_element(By.CLASS_NAME, "offer-price")
-        return price_element.text.strip()
+        price = price_element.text.strip()
+        return price
     except:
         return None
 
@@ -119,29 +121,8 @@ def get_final_price(driver, link):
             pass
         return None
 
-def capture_epey_screenshot_interactive(driver, title, save_path="epey.png"):
-    try:
-        clean_title = normalize_title(title)
-        driver.get("https://www.epey.com/arama/")
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "search_input")))
-
-        input_box = driver.find_element(By.ID, "search_input")
-        input_box.clear()
-        input_box.send_keys(clean_title)
-        input_box.send_keys(Keys.ENTER)
-
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".urunliste")))
-
-        if "Üzgünüz" in driver.page_source or "arama sonucu bulunamadı" in driver.page_source:
-            print(f"⚠️ Epey'de sonuç bulunamadı: {clean_title}")
-            return None
-
-        driver.save_screenshot(save_path)
-        return save_path
-    except Exception as e:
-        print(f"⚠️ Epey ekran görüntüsü hatası: {e}")
-        return None
 def load_sent_data():
+    check_timeout()
     data = {}
     if os.path.exists(SENT_FILE):
         with open(SENT_FILE, "r", encoding="utf-8") as f:
@@ -158,6 +139,7 @@ def save_sent_data(updated_data):
             f.write(f"{asin} | {price}\n")
 
 def run():
+    check_timeout()
     if not decode_cookie_from_env():
         return
 
@@ -166,16 +148,15 @@ def run():
     time.sleep(2)
     load_cookies(driver)
     driver.get(URL)
-
     try:
-        WebDriverWait(driver, 30).until(
+        WebDriverWait(driver, 35).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "div[data-component-type='s-search-result']"))
         )
     except:
         print("⚠️ Sayfa yüklenemedi.")
         driver.quit()
         return
-
+    scroll_page(driver)
     driver.execute_script("""
       document.querySelectorAll("h5.a-carousel-heading").forEach(h => {
         let box = h.closest("div");
@@ -187,6 +168,7 @@ def run():
     print(f"🔍 {len(items)} ürün bulundu.")
     products = []
     for item in items:
+        check_timeout()
         try:
             if item.find_elements(By.XPATH, ".//span[contains(text(), 'Sponsorlu')]"):
                 continue
@@ -218,7 +200,9 @@ def run():
             print(f"⚠️ Ürün parse hatası: {e}")
             continue
 
+    driver.quit()
     print(f"✅ {len(products)} ürün başarıyla alındı.")
+
     sent_data = load_sent_data()
     products_to_send = []
 
@@ -249,14 +233,13 @@ def run():
             products_to_send.append(product)
             sent_data[asin] = price
 
-    from capture import run_capture
-
-    for p in products_to_send:
-        send_message(p)
-        run_capture(p)
-    save_sent_data(sent_data)
-    driver.quit()
-    print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
+    if products_to_send:
+        for p in products_to_send:
+            send_message(p)
+        save_sent_data(sent_data)
+        print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
+    else:
+        print("⚠️ Yeni veya indirimli ürün bulunamadı.")
 
 if __name__ == "__main__":
     run()
