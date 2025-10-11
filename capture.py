@@ -73,8 +73,32 @@ def capture_epey_screenshot(epey_url: str, save_path="epey.png"):
 def run_capture(product: dict):
     title = product["title"]
     epey_url = find_epey_link(title)
-    if not epey_url:
-        return
-    screenshot_path = capture_epey_screenshot(epey_url)
-    if screenshot_path:
-        send_epey_image(product, screenshot_path)
+
+    if epey_url:
+        screenshot_path = capture_epey_screenshot(epey_url)
+        if screenshot_path:
+            send_epey_image(product, screenshot_path)
+            return
+
+    # Fallback: Epey arama sayfasına git
+    print(f"🔄 Epey linki bulunamadı, arama sayfasına geçiliyor: {title}")
+    try:
+        driver = get_driver()
+        driver.get("https://www.epey.com/arama/")
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "search_input")))
+
+        input_box = driver.find_element(By.ID, "search_input")
+        input_box.clear()
+        input_box.send_keys(title)
+        input_box.submit()
+
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".urunliste, .arama-sonucu")))
+        time.sleep(2)
+
+        asin = product.get("asin", "fallback")
+        fallback_path = f"epey_fallback_{asin}.png"
+        driver.save_screenshot(fallback_path)
+        driver.quit()
+        send_epey_image(product, fallback_path)
+    except Exception as e:
+        print(f"⚠️ Fallback ekran görüntüsü hatası: {e}")
