@@ -8,8 +8,9 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
-from telegram_cep import send_epey_image
+from telegram_cep import send_epey_image, send_epey_link
 
 def normalize_title(title):
     title = title.lower()
@@ -18,15 +19,21 @@ def normalize_title(title):
     return title
 
 def get_driver():
-    options = Options()
-    options.add_argument("--headless")  # klasik headless
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--window-size=1920,1080")
-    options.add_argument("--disable-blink-features=AutomationControlled")
-    options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115 Safari/537.36")
-    return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    try:
+        path = ChromeDriverManager().install()
+        print(f"🧪 Chrome driver path: {path}")
+        options = Options()
+        options.add_argument("--headless")  # klasik headless
+        options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--window-size=1920,1080")
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115 Safari/537.36")
+        return webdriver.Chrome(service=Service(path), options=options)
+    except WebDriverException as e:
+        print(f"❌ WebDriver başlatılamadı: {e}")
+        return None
 
 def find_epey_link(product_name: str) -> str:
     api_key = os.environ["GOOGLE_API_KEY"]
@@ -53,8 +60,11 @@ def find_epey_link(product_name: str) -> str:
     return None
 
 def capture_epey_screenshot(epey_url: str, save_path="epey.png"):
+    driver = get_driver()
+    if not driver:
+        print("❌ Tarayıcı başlatılamadı, ekran görüntüsü atlanıyor")
+        return None
     try:
-        driver = get_driver()
         driver.get(epey_url)
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "body")))
         time.sleep(2)
@@ -69,11 +79,15 @@ def capture_epey_screenshot(epey_url: str, save_path="epey.png"):
         return save_path
     except Exception as e:
         print(f"⚠️ Epey ekran görüntüsü hatası: {e}")
+        driver.quit()
         return None
 
 def capture_epey_fallback(title: str, asin: str) -> str:
+    driver = get_driver()
+    if not driver:
+        print("❌ Tarayıcı başlatılamadı, fallback atlanıyor")
+        return None
     try:
-        driver = get_driver()
         driver.get("https://www.epey.com/arama/")
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "search_input")))
 
@@ -91,6 +105,7 @@ def capture_epey_fallback(title: str, asin: str) -> str:
         return fallback_path
     except Exception as e:
         print(f"⚠️ Fallback ekran görüntüsü hatası: {e}")
+        driver.quit()
         return None
 
 def run_capture(product: dict):
@@ -103,8 +118,15 @@ def run_capture(product: dict):
         if screenshot_path:
             send_epey_image(product, screenshot_path)
             return
+        else:
+            print(f"⚠️ Epey sayfası açıldı ama ekran görüntüsü alınamadı: {epey_url}")
+            send_epey_link(product, epey_url)
+            return
 
     print(f"🔄 Epey linki bulunamadı, arama sayfasına geçiliyor: {title}")
     fallback_path = capture_epey_fallback(title, asin)
     if fallback_path:
         send_epey_image(product, fallback_path)
+    else:
+        search_url = f"https://www.epey.com/arama/?q={normalize_title(title).replace(' ', '+')}"
+        send_epey_link(product, search_url)
