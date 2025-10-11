@@ -36,30 +36,7 @@ def get_driver():
         return None
 
 def find_epey_link(product_name: str) -> str:
-    api_key = os.environ.get("GOOGLE_API_KEY")
-    cse_id = os.environ.get("CSE_ID")
-    query = f"{normalize_title(product_name)} epey"
-
-    url = "https://www.googleapis.com/customsearch/v1"
-    params = {
-        "key": api_key,
-        "cx": cse_id,
-        "q": query
-    }
-
-    try:
-        response = requests.get(url, params=params)
-        data = response.json()
-        if "items" in data:
-            for item in data["items"]:
-                link = item.get("link", "")
-                if "epey.com" in link:
-                    print(f"🔗 Epey link bulundu: {link}")
-                    return link
-    except Exception as e:
-        print(f"⚠️ Google CSE hatası: {e}")
-
-    print(f"❌ Epey linki bulunamadı: {product_name}")
+    print(f"🔍 Epey link sayfa üzerinden aranıyor: {product_name}")
     return find_epey_link_via_page(product_name)
 
 def find_epey_link_via_page(product_name: str) -> str:
