@@ -1,7 +1,10 @@
 import time, os, requests
 start = time.time()
+import os
 import json
+import time
 import base64
+import re
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -10,7 +13,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from telegram_cep import send_message
-from capture import run_capture
 
 URL = "https://www.amazon.com.tr/s?i=electronics&rh=n%3A13710137031%2Cp_36%3A-5000000%2Cp_123%3A359121%2Cp_n_g-101013615904111%3A68100078031%2Cp_98%3A21345978031%2Cp_n_condition-type%3A13818537031&dc&ds=v1%3A6sZpe%2FYE4bu2CESwIu9R1HeLmlpl8j6yDZ3GeYQEjJg"
 COOKIE_FILE = "cookie_cep.json"
@@ -31,6 +33,23 @@ def decode_cookie_from_env():
         print(f"❌ Cookie decode hatası: {e}")
         return False
 
+def load_cookies(driver):
+    check_timeout()
+    if not os.path.exists(COOKIE_FILE):
+        print("❌ Cookie dosyası eksik.")
+        return
+    with open(COOKIE_FILE, "r", encoding="utf-8") as f:
+        cookies = json.load(f)
+    for cookie in cookies:
+        try:
+            driver.add_cookie({
+                "name": cookie["name"],
+                "value": cookie["value"],
+                "domain": cookie["domain"],
+                "path": cookie.get("path", "/")
+            })
+        except Exception as e:
+            print(f"⚠️ Cookie eklenemedi: {cookie.get('name')} → {e}")
 def check_timeout():
     if time.time() - start > 180:
         print("⏱️ Süre doldu, zincir devam ediyor.")
@@ -47,7 +66,6 @@ def check_timeout():
         except Exception as e:
             print(f"❌ Scraper B tetiklenemedi: {e}")
         exit()
-
 def get_driver():
     check_timeout()
     options = Options()
@@ -57,19 +75,18 @@ def get_driver():
     options.add_argument("--window-size=1920,1080")
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115 Safari/537.36")
     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-
 def scroll_page(driver, pause=1.5, steps=5):
     for _ in range(steps):
         driver.execute_script("window.scrollBy(0, 1000);")
         time.sleep(pause)
-
 def get_used_price_from_item(item):
     try:
         container = item.find_element(
             By.XPATH,
             ".//span[contains(text(), 'Diğer satın alma seçenekleri')]/following::span[contains(text(), 'TL')][1]"
         )
-        return container.text.strip()
+        price = container.text.strip()
+        return price
     except:
         return None
 
@@ -80,7 +97,8 @@ def get_used_price_from_detail(driver):
             "//div[contains(@class, 'a-column') and .//span[contains(text(), 'İkinci El Ürün Satın Al:')]]"
         )
         price_element = container.find_element(By.CLASS_NAME, "offer-price")
-        return price_element.text.strip()
+        price = price_element.text.strip()
+        return price
     except:
         return None
 
@@ -102,23 +120,6 @@ def get_final_price(driver, link):
         except:
             pass
         return None
-def load_cookies(driver):
-    check_timeout()
-    if not os.path.exists(COOKIE_FILE):
-        print("❌ Cookie dosyası eksik.")
-        return
-    with open(COOKIE_FILE, "r", encoding="utf-8") as f:
-        cookies = json.load(f)
-    for cookie in cookies:
-        try:
-            driver.add_cookie({
-                "name": cookie["name"],
-                "value": cookie["value"],
-                "domain": cookie["domain"],
-                "path": cookie.get("path", "/")
-            })
-        except Exception as e:
-            print(f"⚠️ Cookie eklenemedi: {cookie.get('name')} → {e}")
 
 def load_sent_data():
     check_timeout()
@@ -155,7 +156,6 @@ def run():
         print("⚠️ Sayfa yüklenemedi.")
         driver.quit()
         return
-
     scroll_page(driver)
     driver.execute_script("""
       document.querySelectorAll("h5.a-carousel-heading").forEach(h => {
@@ -167,7 +167,6 @@ def run():
     items = driver.find_elements(By.CSS_SELECTOR, "div[data-component-type='s-search-result']")
     print(f"🔍 {len(items)} ürün bulundu.")
     products = []
-
     for item in items:
         check_timeout()
         try:
@@ -237,7 +236,6 @@ def run():
     if products_to_send:
         for p in products_to_send:
             send_message(p)
-            run_capture(p)
         save_sent_data(sent_data)
         print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
     else:
