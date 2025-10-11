@@ -19,10 +19,12 @@ def normalize_title(title):
 
 def get_driver():
     options = Options()
-    options.add_argument("--headless=new")
+    options.add_argument("--headless")  # klasik headless
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--window-size=1920,1080")
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115 Safari/537.36")
     return webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
@@ -57,7 +59,6 @@ def capture_epey_screenshot(epey_url: str, save_path="epey.png"):
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "body")))
         time.sleep(2)
 
-        # Sayfa gerçekten ürün sayfası mı?
         if "arama" in epey_url or "search" in epey_url or "arama-sonucu" in driver.page_source:
             print(f"⚠️ Sayfa arama sonucu içeriyor: {epey_url}")
             driver.quit()
@@ -70,18 +71,7 @@ def capture_epey_screenshot(epey_url: str, save_path="epey.png"):
         print(f"⚠️ Epey ekran görüntüsü hatası: {e}")
         return None
 
-def run_capture(product: dict):
-    title = product["title"]
-    epey_url = find_epey_link(title)
-
-    if epey_url:
-        screenshot_path = capture_epey_screenshot(epey_url)
-        if screenshot_path:
-            send_epey_image(product, screenshot_path)
-            return
-
-    # Fallback: Epey arama sayfasına git
-    print(f"🔄 Epey linki bulunamadı, arama sayfasına geçiliyor: {title}")
+def capture_epey_fallback(title: str, asin: str) -> str:
     try:
         driver = get_driver()
         driver.get("https://www.epey.com/arama/")
@@ -95,10 +85,26 @@ def run_capture(product: dict):
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".urunliste, .arama-sonucu")))
         time.sleep(2)
 
-        asin = product.get("asin", "fallback")
         fallback_path = f"epey_fallback_{asin}.png"
         driver.save_screenshot(fallback_path)
         driver.quit()
-        send_epey_image(product, fallback_path)
+        return fallback_path
     except Exception as e:
         print(f"⚠️ Fallback ekran görüntüsü hatası: {e}")
+        return None
+
+def run_capture(product: dict):
+    title = product["title"]
+    asin = product.get("asin", "fallback")
+    epey_url = find_epey_link(title)
+
+    if epey_url:
+        screenshot_path = capture_epey_screenshot(epey_url, save_path=f"epey_{asin}.png")
+        if screenshot_path:
+            send_epey_image(product, screenshot_path)
+            return
+
+    print(f"🔄 Epey linki bulunamadı, arama sayfasına geçiliyor: {title}")
+    fallback_path = capture_epey_fallback(title, asin)
+    if fallback_path:
+        send_epey_image(product, fallback_path)
