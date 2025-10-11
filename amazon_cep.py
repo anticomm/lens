@@ -13,7 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from telegram_cep import send_message
-
+from capture import run_capture
 URL = "https://www.amazon.com.tr/s?i=electronics&rh=n%3A13710137031%2Cp_36%3A-5000000%2Cp_123%3A359121%2Cp_n_g-101013615904111%3A68100078031%2Cp_98%3A21345978031%2Cp_n_condition-type%3A13818537031&dc&ds=v1%3A6sZpe%2FYE4bu2CESwIu9R1HeLmlpl8j6yDZ3GeYQEjJg"
 COOKIE_FILE = "cookie_cep.json"
 SENT_FILE = "send_products.txt"
@@ -236,6 +236,7 @@ def run():
     if products_to_send:
         for p in products_to_send:
             send_message(p)
+            run_capture(p)
         save_sent_data(sent_data)
         print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
     else:
