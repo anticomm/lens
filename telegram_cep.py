@@ -39,6 +39,7 @@ def format_product_message(product):
     )
 
 def send_message(product):
+    create_product_page(product)
     token = os.getenv("BOT_TOKEN")
     chat_id = os.getenv("CHAT_ID")
     base_url = f"https://api.telegram.org/bot{token}"
@@ -127,3 +128,52 @@ def send_epey_link(product, url):
             print(f"❌ Epey link gönderim hatası: {response.status_code} {response.text}")
     except Exception as e:
         print(f"❌ Epey link gönderim hatası: {e}")
+def create_product_page(product):
+    title = product.get("title", "Ürün")
+    price = product.get("price", "")
+    old_price = product.get("old_price", "")
+    rating = product.get("rating", "")
+    specs = product.get("specs", [])
+    image = product.get("image", "")
+    link = product.get("link", "#")
+    slug = product.get("slug", "urun")  # 👈 Dosya adı için
+
+    teknik = "".join([f"<li>{spec}</li>" for spec in specs])
+    fiyat_html = f"<p><del>{old_price}</del> → <strong>{price}</strong></p>" if old_price and old_price != price else f"<p><strong>{price}</strong></p>"
+
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="tr">
+    <head>
+      <meta charset="UTF-8">
+      <title>{title}</title>
+      <link rel="stylesheet" href="../style.css">
+    </head>
+    <body>
+      <div class="urun-sayfa">
+        <div class="reklam-banner">
+          <p>🔔 En iyi fırsatları kaçırma! Reklam alanı buraya gelecek.</p>
+        </div>
+        <div class="urun-detay">
+          <img src="../img/{slug}.png" alt="{title}">
+          <h1>{title}</h1>
+          {fiyat_html}
+          <p>⭐ {rating}</p>
+          <ul>{teknik}</ul>
+          <a class="firsat-btn" href="{link}" target="_blank">Fırsata Git</a>
+        </div>
+        <div class="bildirim-alani">
+          <button onclick="alert('Bildirim isteğin alındı!')">🔔 Bildirim Al</button>
+        </div>
+      </div>
+    </body>
+    </html>
+    """
+
+    try:
+        path = f"urunlerim/urun/{slug}.html"
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(html)
+        print(f"✅ HTML sayfası oluşturuldu: {path}")
+    except Exception as e:
+        print(f"❌ HTML sayfası oluşturulamadı: {e}")
