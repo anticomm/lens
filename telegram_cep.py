@@ -184,7 +184,10 @@ def create_product_page(product):
     try:
         subprocess.run(["git", "-C", "urunlerim", "add", "."], check=True)
         subprocess.run(["git", "-C", "urunlerim", "commit", "-m", "Yeni ürün sayfaları eklendi"], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "push"], check=True)
+        subprocess.run([
+            "git", "-C", "urunlerim", "push",
+            f"https://{os.getenv('SUBMODULE_TOKEN')}@github.com/anticomm/urunlerim.git"
+        ], check=True)
         print("🚀 HTML dosyaları GitHub'a gönderildi.")
     except Exception as e:
         print(f"❌ Git işlemi başarısız: {e}")
