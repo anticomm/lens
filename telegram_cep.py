@@ -200,7 +200,7 @@ def create_product_page(product):
         subprocess.run(["git", "-C", "urunlerim", "commit", "-m", "Yeni ürün sayfaları eklendi"], check=True)
         subprocess.run([
             "git", "-C", "urunlerim", "push",
-            f"https://{os.getenv('SUBMODULE_TOKEN')}@github.com/anticomm/urunlerim.git"
+            f"https://{os.getenv('SUBMODULE_TOKEN')}@github.com/anticomm/urunlerim.git",
             "HEAD:master"
         ], check=True)
         print("🚀 HTML dosyaları GitHub'a gönderildi.")
