@@ -64,8 +64,9 @@ def send_message(product):
             payload = {
                 "chat_id": chat_id,
                 "text": message,
-                "parse_mode": "Markdown"
-                "disable_web_page_preview": True  # 👈 bu satır eklenecek
+                "parse_mode": "Markdown",
+                "disable_web_page_preview": True  # 👈 virgül eklendi
+
             }
             response = requests.post(f"{base_url}/sendMessage", data=payload)
 
