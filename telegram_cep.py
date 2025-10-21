@@ -44,7 +44,9 @@ def send_message(product):
     token = os.getenv("BOT_TOKEN")
     chat_id = os.getenv("CHAT_ID")
     base_url = f"https://api.telegram.org/bot{token}"
-
+    subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
+    subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
+    
     if not token or not chat_id:
         print("❌ BOT_TOKEN veya CHAT_ID tanımlı değil.")
         return
@@ -182,6 +184,9 @@ def create_product_page(product):
     except Exception as e:
         print(f"❌ HTML sayfası oluşturulamadı: {e}")
     try:
+        subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
+
         subprocess.run(["git", "-C", "urunlerim", "add", "."], check=True)
         subprocess.run(["git", "-C", "urunlerim", "commit", "-m", "Yeni ürün sayfaları eklendi"], check=True)
         subprocess.run([
