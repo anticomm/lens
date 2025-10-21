@@ -26,6 +26,8 @@ jobs:
       - name: Submodule'ları initialize et
         run: |
           git submodule update --init --recursive
+          cd urunlerim
+          git checkout master
 
       - name: Python ortamı
         uses: actions/setup-python@v4
