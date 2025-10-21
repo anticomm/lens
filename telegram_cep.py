@@ -67,23 +67,13 @@ def send_message(product):
     image_url = product.get("image")
 
     try:
-        if image_url and image_url.startswith("http") and len(message) <= 1024:
-            payload = {
-                "chat_id": chat_id,
-                "photo": image_url,
-                "caption": message,
-                "parse_mode": "Markdown"
-            }
-            response = requests.post(f"{base_url}/sendPhoto", data=payload)
-        else:
-            payload = {
-                "chat_id": chat_id,
-                "text": message,
-                "parse_mode": "Markdown",
-                "disable_web_page_preview": True  # 👈 virgül eklendi
-
-            }
-            response = requests.post(f"{base_url}/sendMessage", data=payload)
+        payload = {
+            "chat_id": chat_id,
+            "text": message,
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": True
+        }
+        response = requests.post(f"{base_url}/sendMessage", data=payload)
 
         if response.status_code == 200:
             print(f"✅ Gönderildi: {product.get('title', 'Ürün')}")
@@ -91,6 +81,7 @@ def send_message(product):
             print(f"❌ Gönderim hatası: {product.get('title', 'Ürün')} → {response.status_code} {response.text}")
     except Exception as e:
         print(f"❌ Telegram gönderim hatası: {e}")
+
 
 # 👇 Epey ekran görüntüsü gönderimi
 def send_epey_image(product, image_path):
