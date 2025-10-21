@@ -200,7 +200,7 @@ def run():
             products.append({
                 "asin": asin,
                 "title": title,
-                "link": link,
+                "amazon_link": amazon_link,  # ✅ gerçek Amazon linki
                 "image": image,
                 "price": price
             })
