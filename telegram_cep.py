@@ -149,7 +149,7 @@ def create_product_page(product):
     rating = product.get("rating", "")
     specs = product.get("specs", [])
     image = product.get("image", "")
-    link = shorten_url(product.get("link", "#"))
+    link = shorten_url(product.get("amazon_link", "#"))
     slug = product.get("slug", "urun")  # 👈 Dosya adı için
     update_category_page()
     teknik = "".join([f"<li>{spec}</li>" for spec in specs])
