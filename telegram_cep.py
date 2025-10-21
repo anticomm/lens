@@ -15,7 +15,7 @@ def format_product_message(product):
     title = product.get("title", "🛍️ Ürün adı bulunamadı")
     price = product.get("price", "Fiyat alınamadı")
     old_price = product.get("old_price", "")  # 👈 Yeni satır
-    link = product.get("link", "#")
+    link = shorten_url(product.get("link", "#"))
     discount = product.get("discount", "")
     rating = product.get("rating", "")
     colors = product.get("colors", [])
