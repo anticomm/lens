@@ -155,7 +155,7 @@ def create_product_page(product):
           <p>🔔 En iyi fırsatları kaçırma! Reklam alanı buraya gelecek.</p>
         </div>
         <div class="urun-detay">
-          <img src="../img/{slug}.png" alt="{title}">
+          <img src="{product.get('image', '')}" alt="{title}">
           <h1>{title}</h1>
           {fiyat_html}
           <p>⭐ {rating}</p>
