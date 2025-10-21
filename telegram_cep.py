@@ -12,6 +12,9 @@ def shorten_url(url):
     return url  # fallback
 
 def format_product_message(product):
+    if not product.get("link") or product.get("link") == "#":
+        print(f"❌ Telegram link eksik: {product.get('title')}")
+        return ""
     title = product.get("title", "🛍️ Ürün adı bulunamadı")
     price = product.get("price", "Fiyat alınamadı")
     old_price = product.get("old_price", "")  # 👈 Yeni satır
@@ -143,6 +146,9 @@ def send_epey_link(product, url):
     except Exception as e:
         print(f"❌ Epey link gönderim hatası: {e}")
 def create_product_page(product):
+    if not product.get("amazon_link") or product.get("amazon_link") == "#":
+        print(f"❌ Amazon link eksik, HTML oluşturulmayacak: {product.get('title')}")
+        return
     title = product.get("title", "Ürün")
     price = product.get("price", "")
     old_price = product.get("old_price", "")
