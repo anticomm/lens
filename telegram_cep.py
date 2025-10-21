@@ -151,7 +151,7 @@ def create_product_page(product):
     image = product.get("image", "")
     link = shorten_url(product.get("link", "#"))
     slug = product.get("slug", "urun")  # 👈 Dosya adı için
-
+    update_category_page()
     teknik = "".join([f"<li>{spec}</li>" for spec in specs])
     fiyat_html = f"<p><del>{old_price}</del> → <strong>{price}</strong></p>" if old_price and old_price != price else f"<p><strong>{price}</strong></p>"
 
@@ -205,3 +205,64 @@ def create_product_page(product):
         print("🚀 HTML dosyaları GitHub'a gönderildi.")
     except Exception as e:
         print(f"❌ Git işlemi başarısız: {e}")
+def update_category_page():
+    try:
+        urun_klasoru = "urunlerim/urun"
+        os.makedirs(urun_klasoru, exist_ok=True)
+        html_dosyalar = [f for f in os.listdir(urun_klasoru) if f.endswith(".html") and f != "index.html"]
+
+        liste = ""
+        for dosya in sorted(html_dosyalar):
+            slug = dosya.replace(".html", "")
+            liste += f'<li><a href="{dosya}">{slug.replace("-", " ").title()}</a></li>\n'
+
+        html = f"""
+        <!DOCTYPE html>
+        <html lang="tr">
+        <head>
+            <meta charset="UTF-8">
+            <title>Ürünler</title>
+            <link rel="stylesheet" href="../style.css">
+            <style>
+              ul {{
+                list-style: none;
+                padding: 0;
+              }}
+              li {{
+                margin: 10px 0;
+              }}
+              a {{
+                text-decoration: none;
+                color: #ff6600;
+                font-weight: bold;
+              }}
+              a:hover {{
+                text-decoration: underline;
+              }}
+              .container {{
+                padding: 40px;
+              }}
+            </style>
+        </head>
+        <body>
+            <div class="navbar">
+              <ul>
+                <li><a href="/">Anasayfa</a></li>
+                <li><a href="index.html">Tüm Ürünler</a></li>
+              </ul>
+            </div>
+            <div class="container">
+              <h1>📦 Yayındaki Ürünler</h1>
+              <ul>
+                {liste}
+              </ul>
+            </div>
+        </body>
+        </html>
+        """
+
+        with open(os.path.join(urun_klasoru, "index.html"), "w", encoding="utf-8") as f:
+            f.write(html)
+        print("✅ Kategori sayfası güncellendi.")
+    except Exception as e:
+        print(f"❌ Kategori sayfası hatası: {e}")
