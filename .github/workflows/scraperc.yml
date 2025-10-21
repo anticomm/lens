@@ -23,6 +23,10 @@ jobs:
     steps:
       - name: Repo'yu klonla
         uses: actions/checkout@v3
+      
+      - name: Submodule'ları initialize et
+        run: |
+          git submodule update --init --recursive
 
       - name: Python ortamı
         uses: actions/setup-python@v4
