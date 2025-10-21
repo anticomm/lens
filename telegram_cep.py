@@ -2,6 +2,15 @@ import os
 import requests
 import subprocess
 
+def shorten_url(url):
+    try:
+        response = requests.get(f"https://is.gd/create.php?format=simple&url={url}")
+        if response.status_code == 200:
+            return response.text.strip()
+    except Exception as e:
+        print(f"❌ Link kısaltma hatası: {e}")
+    return url  # fallback
+
 def format_product_message(product):
     title = product.get("title", "🛍️ Ürün adı bulunamadı")
     price = product.get("price", "Fiyat alınamadı")
@@ -140,7 +149,7 @@ def create_product_page(product):
     rating = product.get("rating", "")
     specs = product.get("specs", [])
     image = product.get("image", "")
-    link = product.get("link", "#")
+    link = shorten_url(product.get("link", "#"))
     slug = product.get("slug", "urun")  # 👈 Dosya adı için
 
     teknik = "".join([f"<li>{spec}</li>" for spec in specs])
