@@ -55,7 +55,7 @@ def send_message(product):
     image_url = product.get("image")
 
     try:
-        if image_url and image_url.startswith("http"):
+        if image_url and image_url.startswith("http") and len(message) <= 1024:
             payload = {
                 "chat_id": chat_id,
                 "photo": image_url,
