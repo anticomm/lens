@@ -1,5 +1,6 @@
 import os
 import requests
+import subprocess
 
 def format_product_message(product):
     title = product.get("title", "🛍️ Ürün adı bulunamadı")
@@ -180,3 +181,10 @@ def create_product_page(product):
         print(f"✅ HTML sayfası oluşturuldu: {path}")
     except Exception as e:
         print(f"❌ HTML sayfası oluşturulamadı: {e}")
+    try:
+        subprocess.run(["git", "-C", "urunlerim", "add", "."], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "commit", "-m", "Yeni ürün sayfaları eklendi"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "push"], check=True)
+        print("🚀 HTML dosyaları GitHub'a gönderildi.")
+    except Exception as e:
+        print(f"❌ Git işlemi başarısız: {e}")
