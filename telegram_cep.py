@@ -171,6 +171,7 @@ def create_product_page(product):
     """
 
     try:
+        os.makedirs("urunlerim/urun", exist_ok=True)  # 👈 klasör garantisi buraya
         path = f"urunlerim/urun/{slug}.html"
         with open(path, "w", encoding="utf-8") as f:
             f.write(html)
