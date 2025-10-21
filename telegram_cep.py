@@ -201,6 +201,7 @@ def create_product_page(product):
         subprocess.run([
             "git", "-C", "urunlerim", "push",
             f"https://{os.getenv('SUBMODULE_TOKEN')}@github.com/anticomm/urunlerim.git"
+            "HEAD:master"
         ], check=True)
         print("🚀 HTML dosyaları GitHub'a gönderildi.")
     except Exception as e:
