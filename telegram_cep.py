@@ -191,6 +191,7 @@ def create_product_page(product):
     </html>
     """
 try:
+    URUNLERIM_PATH = os.path.join(os.getcwd(), "urunlerim")
     # Ana repo için kimlik tanımı
     subprocess.run(["git", "config", "user.name", "github-actions"], check=True)
     subprocess.run(["git", "config", "user.email", "actions@github.com"], check=True)
@@ -210,6 +211,8 @@ except Exception as e:
     print(f"❌ HTML sayfası oluşturulamadı: {e}")
 
 try:
+    path = os.path.join(os.getcwd(), "urunlerim", "urun", f"{slug}.html")
+    relative_path = os.path.relpath(path, os.path.join(os.getcwd(), "urunlerim"))
     # Submodule için kimlik tanımı
     subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
     subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
