@@ -208,11 +208,8 @@ def create_product_page(product):
         subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
 
         # 2. Uzak repoyu önce güncelle
-        subprocess.run([
-            "git", "-C", "urunlerim", "pull", "--rebase",
-            f"https://{os.getenv('SUBMODULE_TOKEN')}@github.com/anticomm/urunlerim.git",
-            "master"
-        ], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "fetch"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "reset", "--hard", "origin/master"], check=True)
 
         # 3. Dosyayı yaz (bu zaten yukarıda yapılıyor)
 
