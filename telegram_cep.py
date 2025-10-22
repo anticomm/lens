@@ -216,7 +216,7 @@ def create_product_page(product):
         # 3. Dosyayı yaz (bu zaten yukarıda yapılıyor)
 
         # 4. Değişiklikleri ekle ve gönder
-        subprocess.run(["git", "-C", "urunlerim", "add", "urun"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "add", os.path.join("urun", f"{slug}.html")], check=True)
         subprocess.run(["git", "-C", "urunlerim", "status"], check=True)  # ✅ Değişiklikleri gör
         subprocess.run(["git", "-C", "urunlerim", "commit", "-m", "Yeni ürün sayfaları eklendi"], check=True)
         subprocess.run([
