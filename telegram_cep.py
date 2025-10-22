@@ -203,26 +203,31 @@ def create_product_page(product):
     except Exception as e:
         print(f"❌ HTML sayfası oluşturulamadı: {e}")
     try:
+        # 1. Git kimliği ayarla
         subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
 
-        subprocess.run(["git", "-C", "urunlerim", "add", "."], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "commit", "-m", "Yeni ürün sayfaları eklendi"], check=True)
-        
+        # 2. Uzak repoyu önce güncelle
         subprocess.run([
             "git", "-C", "urunlerim", "pull", "--rebase",
             f"https://{os.getenv('SUBMODULE_TOKEN')}@github.com/anticomm/urunlerim.git",
             "master"
         ], check=True)
-        
+
+        # 3. Dosyayı yaz (bu zaten yukarıda yapılıyor)
+
+        # 4. Değişiklikleri ekle ve gönder
+        subprocess.run(["git", "-C", "urunlerim", "add", "."], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "commit", "-m", "Yeni ürün sayfaları eklendi"], check=True)
         subprocess.run([
             "git", "-C", "urunlerim", "push",
             f"https://{os.getenv('SUBMODULE_TOKEN')}@github.com/anticomm/urunlerim.git",
             "HEAD:master"
         ], check=True)
-        print("🚀 HTML dosyaları GitHub'a gönderildi.")
-    except Exception as e:
-        print(f"❌ Git işlemi başarısız: {e}")
+
+    print("🚀 HTML dosyaları GitHub'a gönderildi.")
+except Exception as e:
+    print(f"❌ Git işlemi başarısız: {e}")
 def update_category_page():
     try:
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
