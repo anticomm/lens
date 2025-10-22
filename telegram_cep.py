@@ -138,6 +138,8 @@ def send_epey_link(product, url):
     except Exception as e:
         print(f"❌ Epey link gönderim hatası: {e}")
 def create_product_page(product):
+    print("📦 Gelen ürün verisi:")
+    print(product)
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     URUNLERIM_PATH = os.path.join(BASE_DIR, "urunlerim")
     if not product.get("amazon_link") or product.get("amazon_link") == "#":
@@ -159,6 +161,8 @@ def create_product_page(product):
     fiyat_html = f"<p><del>{old_price}</del> → <strong>{price}</strong></p>" if old_price and old_price != price else f"<p><strong>{price}</strong></p>"
 
     html = f"""
+    print("📄 HTML içeriği:")
+    print(html)
     <!DOCTYPE html>
     <html lang="tr">
     <head>
@@ -190,6 +194,7 @@ def create_product_page(product):
     try:
         os.makedirs(os.path.join(URUNLERIM_PATH, "urun"), exist_ok=True)
         path = os.path.join(URUNLERIM_PATH, "urun", f"{slug}.html")
+        print(f"🧪 Dosya yazılacak yol: {path}")
         with open(path, "w", encoding="utf-8") as f:
             f.write(html)
         print(f"✅ HTML sayfası oluşturuldu: {path}")
