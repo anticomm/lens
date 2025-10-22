@@ -216,6 +216,7 @@ def create_product_page(product):
 
         # 4. Değişiklikleri ekle ve gönder
         subprocess.run(["git", "-C", "urunlerim", "add", "--all"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "status"], check=True)  # ✅ Değişiklikleri gör
         subprocess.run(["git", "-C", "urunlerim", "commit", "-m", "Yeni ürün sayfaları eklendi"], check=True)
         subprocess.run([
             "git", "-C", "urunlerim", "push",
