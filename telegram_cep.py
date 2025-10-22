@@ -197,6 +197,7 @@ def create_product_page(product):
         print(f"🧪 Dosya yazılacak yol: {path}")
         with open(path, "w", encoding="utf-8") as f:
             f.write(html)
+        print(f"📏 Dosya boyutu: {os.path.getsize(path)} bayt")
         print(f"✅ HTML sayfası oluşturuldu: {path}")
         print(f"📁 HTML dosyası tam yol: {path}")
     except Exception as e:
