@@ -225,9 +225,9 @@ def create_product_page(product):
             "HEAD:master"
         ], check=True)
 
-    print("🚀 HTML dosyaları GitHub'a gönderildi.")
-except Exception as e:
-    print(f"❌ Git işlemi başarısız: {e}")
+        print("🚀 HTML dosyaları GitHub'a gönderildi.")
+    except Exception as e:
+        print(f"❌ Git işlemi başarısız: {e}")
 def update_category_page():
     try:
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
