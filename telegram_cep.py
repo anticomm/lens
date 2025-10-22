@@ -190,56 +190,56 @@ def create_product_page(product):
     </body>
     </html>
     """
-try:
-    URUNLERIM_PATH = os.path.join(os.getcwd(), "urunlerim")
-    # Ana repo için kimlik tanımı
-    subprocess.run(["git", "config", "user.name", "github-actions"], check=True)
-    subprocess.run(["git", "config", "user.email", "actions@github.com"], check=True)
+    try:
+        URUNLERIM_PATH = os.path.join(os.getcwd(), "urunlerim")
+        # Ana repo için kimlik tanımı
+        subprocess.run(["git", "config", "user.name", "github-actions"], check=True)
+        subprocess.run(["git", "config", "user.email", "actions@github.com"], check=True)
 
-    # HTML dosyasını yaz
-    os.makedirs(os.path.join(URUNLERIM_PATH, "urun"), exist_ok=True)
-    path = os.path.join(os.getcwd(), "urunlerim", "urun", f"{slug}.html")
-    print(f"🧪 Dosya yazılacak yol: {path}")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(html)
-    relative_path = os.path.relpath(path, os.path.join(os.getcwd(), "urunlerim"))
-    os.utime(path, None)
-    print(f"📏 Dosya boyutu: {os.path.getsize(path)} bayt")
-    print(f"✅ HTML sayfası oluşturuldu: {path}")
-    print(f"📁 HTML dosyası tam yol: {path}")
-except Exception as e:
-    print(f"❌ HTML sayfası oluşturulamadı: {e}")
+        # HTML dosyasını yaz
+        os.makedirs(os.path.join(URUNLERIM_PATH, "urun"), exist_ok=True)
+        path = os.path.join(os.getcwd(), "urunlerim", "urun", f"{slug}.html")
+        print(f"🧪 Dosya yazılacak yol: {path}")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(html)
+        relative_path = os.path.relpath(path, os.path.join(os.getcwd(), "urunlerim"))
+        os.utime(path, None)
+        print(f"📏 Dosya boyutu: {os.path.getsize(path)} bayt")
+        print(f"✅ HTML sayfası oluşturuldu: {path}")
+        print(f"📁 HTML dosyası tam yol: {path}")
+    except Exception as e:
+        print(f"❌ HTML sayfası oluşturulamadı: {e}")
 
-try:
-    path = os.path.join(os.getcwd(), "urunlerim", "urun", f"{slug}.html")
-    relative_path = os.path.relpath(path, os.path.join(os.getcwd(), "urunlerim"))
-    # Submodule için kimlik tanımı
-    subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
-    subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
+    try:
+        path = os.path.join(os.getcwd(), "urunlerim", "urun", f"{slug}.html")
+        relative_path = os.path.relpath(path, os.path.join(os.getcwd(), "urunlerim"))
+        # Submodule için kimlik tanımı
+        subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
 
-    # Submodule güncellemesi
-    subprocess.run(["git", "-C", "urunlerim", "fetch"], check=True)
-    subprocess.run(["git", "-C", "urunlerim", "reset", "--hard", "origin/main"], check=True)
-    subprocess.run(["git", "-C", "urunlerim", "update-index", "--no-assume-unchanged", relative_path], check=False)
-    subprocess.run(["git", "-C", "urunlerim", "add", "-f", relative_path], check=True)
-    subprocess.run(["git", "-C", "urunlerim", "status"], check=True)
-    subprocess.run(["git", "-C", "urunlerim", "commit", "-m", "Yeni ürün sayfaları eklendi"], check=True)
-    subprocess.run([
-        "git", "-C", "urunlerim", "push",
-        f"https://{os.getenv('SUBMODULE_TOKEN')}@github.com/anticomm/urunlerim.git",
-        "HEAD:main"
-    ], check=True)
+        # Submodule güncellemesi
+        subprocess.run(["git", "-C", "urunlerim", "fetch"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "reset", "--hard", "origin/main"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "update-index", "--no-assume-unchanged", relative_path], check=False)
+        subprocess.run(["git", "-C", "urunlerim", "add", "-f", relative_path], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "status"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "commit", "-m", "Yeni ürün sayfaları eklendi"], check=True)
+        subprocess.run([
+            "git", "-C", "urunlerim", "push",
+            f"https://{os.getenv('SUBMODULE_TOKEN')}@github.com/anticomm/urunlerim.git",
+            "HEAD:main"
+        ], check=True)
 
-    print("🚀 HTML dosyaları GitHub'a gönderildi.")
+        print("🚀 HTML dosyaları GitHub'a gönderildi.")
 
-    # Ana repo güncellemesi (önce reset, sonra commit)
-    subprocess.run(["git", "fetch"], check=True)
-    subprocess.run(["git", "reset", "--hard", "origin/master"], check=True)
-    subprocess.run(["git", "add", "urunlerim"], check=True)
-    subprocess.run(["git", "commit", "-m", "Submodule güncellendi"], check=True)
-    subprocess.run(["git", "push", "origin", "HEAD:master"], check=True)
-except Exception as e:
-    print(f"❌ Git işlemi başarısız: {e}")
+        # Ana repo güncellemesi (önce reset, sonra commit)
+        subprocess.run(["git", "fetch"], check=True)
+        subprocess.run(["git", "reset", "--hard", "origin/master"], check=True)
+        subprocess.run(["git", "add", "urunlerim"], check=True)
+        subprocess.run(["git", "commit", "-m", "Submodule güncellendi"], check=True)
+        subprocess.run(["git", "push", "origin", "HEAD:master"], check=True)
+    except Exception as e:
+        print(f"❌ Git işlemi başarısız: {e}")
     
 def update_category_page():
     try:
