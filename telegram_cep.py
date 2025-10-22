@@ -197,6 +197,7 @@ def create_product_page(product):
         print(f"🧪 Dosya yazılacak yol: {path}")
         with open(path, "w", encoding="utf-8") as f:
             f.write(html)
+        os.utime(path, None)
         print(f"📏 Dosya boyutu: {os.path.getsize(path)} bayt")
         print(f"✅ HTML sayfası oluşturuldu: {path}")
         print(f"📁 HTML dosyası tam yol: {path}")
@@ -214,7 +215,7 @@ def create_product_page(product):
         # 3. Dosyayı yaz (bu zaten yukarıda yapılıyor)
 
         # 4. Değişiklikleri ekle ve gönder
-        subprocess.run(["git", "-C", "urunlerim", "add", "."], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "add", "--all"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "commit", "-m", "Yeni ürün sayfaları eklendi"], check=True)
         subprocess.run([
             "git", "-C", "urunlerim", "push",
