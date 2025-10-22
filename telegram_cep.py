@@ -52,6 +52,7 @@ def format_product_message(product):
     )
 
 def send_message(product):
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     create_product_page(product)
     token = os.getenv("BOT_TOKEN")
     chat_id = os.getenv("CHAT_ID")
@@ -137,9 +138,12 @@ def send_epey_link(product, url):
     except Exception as e:
         print(f"❌ Epey link gönderim hatası: {e}")
 def create_product_page(product):
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    URUNLERIM_PATH = os.path.join(BASE_DIR, "urunlerim")
     if not product.get("amazon_link") or product.get("amazon_link") == "#":
         print(f"❌ Amazon link eksik, HTML oluşturulmayacak: {product.get('title')}")
         return
+    slug = product.get("slug", "urun")  # ✅ eksik olan satır
     title = product.get("title", "Ürün")
     price = product.get("price", "")
     old_price = product.get("old_price", "")
@@ -147,8 +151,10 @@ def create_product_page(product):
     specs = product.get("specs", [])
     image = product.get("image", "")
     link = shorten_url(product.get("amazon_link", "#"))
-    slug = product.get("slug", "urun")  # 👈 Dosya adı için
     update_category_page()
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    URUNLERIM_PATH = os.path.join(BASE_DIR, "urunlerim")
+    urun_klasoru = os.path.join(URUNLERIM_PATH, "urun")
     teknik = "".join([f"<li>{spec}</li>" for spec in specs])
     fiyat_html = f"<p><del>{old_price}</del> → <strong>{price}</strong></p>" if old_price and old_price != price else f"<p><strong>{price}</strong></p>"
 
@@ -182,11 +188,12 @@ def create_product_page(product):
     """
 
     try:
-        os.makedirs("urunlerim/urun", exist_ok=True)  # 👈 klasör garantisi buraya
-        path = f"urunlerim/urun/{slug}.html"
+        os.makedirs(os.path.join(URUNLERIM_PATH, "urun"), exist_ok=True)
+        path = os.path.join(URUNLERIM_PATH, "urun", f"{slug}.html")
         with open(path, "w", encoding="utf-8") as f:
             f.write(html)
         print(f"✅ HTML sayfası oluşturuldu: {path}")
+        print(f"📁 HTML dosyası tam yol: {path}")
     except Exception as e:
         print(f"❌ HTML sayfası oluşturulamadı: {e}")
     try:
@@ -212,7 +219,9 @@ def create_product_page(product):
         print(f"❌ Git işlemi başarısız: {e}")
 def update_category_page():
     try:
-        urun_klasoru = "urunlerim/urun"
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        URUNLERIM_PATH = os.path.join(BASE_DIR, "urunlerim")
+        urun_klasoru = os.path.join(URUNLERIM_PATH, "urun")
         os.makedirs(urun_klasoru, exist_ok=True)
         html_dosyalar = [f for f in os.listdir(urun_klasoru) if f.endswith(".html") and f != "index.html"]
 
