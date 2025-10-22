@@ -212,7 +212,6 @@ def create_product_page(product):
         # 2. Uzak repoyu önce güncelle
         subprocess.run(["git", "-C", "urunlerim", "fetch"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "reset", "--hard", "origin/main"], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "checkout", "master"], check=True)
         # 3. Dosyayı yaz (bu zaten yukarıda yapılıyor)
 
         # 4. Değişiklikleri ekle ve gönder
@@ -227,6 +226,11 @@ def create_product_page(product):
         ], check=True)
 
         print("🚀 HTML dosyaları GitHub'a gönderildi.")
+        
+        # 5. Ana repo submodule güncellemesini commit et
+        subprocess.run(["git", "add", "urunlerim"], check=True)
+        subprocess.run(["git", "commit", "-m", "Submodule güncellendi"], check=True)
+        subprocess.run(["git", "push", "origin", "HEAD:master"], check=True)  # veya HEAD:main, lens hangi branch'i kullanıyorsa
     except Exception as e:
         print(f"❌ Git işlemi başarısız: {e}")
 def update_category_page():
