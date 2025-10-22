@@ -197,7 +197,7 @@ def create_product_page(product):
         print(f"🧪 Dosya yazılacak yol: {path}")
         with open(path, "w", encoding="utf-8") as f:
             f.write(html)
-            relative_path = os.path.relpath(path, URUNLERIM_PATH)
+        relative_path = os.path.relpath(path, URUNLERIM_PATH)
         os.utime(path, None)
         print(f"📏 Dosya boyutu: {os.path.getsize(path)} bayt")
         print(f"✅ HTML sayfası oluşturuldu: {path}")
