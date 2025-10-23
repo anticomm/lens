@@ -105,6 +105,7 @@ def process_product(product):
         return
 
     try:
+        # Submodule için kimlik ayarı ve push
         subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "fetch"], check=True)
@@ -118,11 +119,16 @@ def process_product(product):
             "HEAD:main"
         ], check=True)
         print("🚀 HTML dosyaları GitHub'a gönderildi.")
+
+        # Ana repo için kimlik ayarı ve submodule commit
+        subprocess.run(["git", "config", "user.name", "github-actions"], check=True)
+        subprocess.run(["git", "config", "user.email", "actions@github.com"], check=True)
         subprocess.run(["git", "fetch"], check=True)
         subprocess.run(["git", "reset", "--hard", "origin/master"], check=True)
         subprocess.run(["git", "add", "urunlerim"], check=True)
         subprocess.run(["git", "commit", "-m", "Submodule güncellendi"], check=True)
         subprocess.run(["git", "push", "origin", "HEAD:master"], check=True)
+
     except Exception as e:
         print(f"❌ Git işlemi başarısız: {e}")
 
