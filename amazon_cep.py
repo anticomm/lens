@@ -187,7 +187,15 @@ def run():
             title = item.find_element(By.CSS_SELECTOR, "img.s-image").get_attribute("alt").strip()
             link = item.find_element(By.CSS_SELECTOR, "a.a-link-normal").get_attribute("href")
             image = item.find_element(By.CSS_SELECTOR, "img.s-image").get_attribute("src")
+            try:
+                rating = item.find_element(By.CSS_SELECTOR, "span.a-icon-alt").text.strip()
+            except:
+                rating = ""
 
+            try:
+                specs = [li.text.strip() for li in item.find_elements(By.CSS_SELECTOR, "div.a-row.a-size-base.a-color-secondary span")]
+            except:
+                specs = []
             price = get_used_price_from_item(item)
             if not price:
                 price = get_final_price(driver, link)
@@ -200,7 +208,9 @@ def run():
                 "title": title,
                 "link": link,
                 "image": image,
-                "price": price
+                "price": price,
+                "rating": rating,
+                "specs": specs
             })
 
         except Exception as e:
@@ -229,7 +239,10 @@ def run():
 
             if new_val < old_val:
                 print(f"📉 Fiyat düştü: {product['title']} → {old_price} → {price}")
-                product["old_price"] = old_price
+                product["old_price"] = product.get("old_price", "")
+                product["rating"] = product.get("rating", "")
+                product["specs"] = product.get("specs", [])
+                product["amazon_link"] = product.get("link", "")
                 products_to_send.append(product)
             else:
                 print(f"⏩ Fiyat yükseldi veya aynı: {product['title']} → {old_price} → {price}")
@@ -237,6 +250,10 @@ def run():
 
         else:
             print(f"🆕 Yeni ürün: {product['title']}")
+            product["old_price"] = product.get("old_price", "")
+            product["rating"] = product.get("rating", "")
+            product["specs"] = product.get("specs", [])
+            product["amazon_link"] = product.get("link", "")
             products_to_send.append(product)
             sent_data[asin] = price
 
