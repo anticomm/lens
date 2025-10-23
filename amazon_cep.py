@@ -14,7 +14,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from telegram_cep import send_message
 from capture import run_capture
-from slugify import slugify
 URL = "https://www.amazon.com.tr/s?k=%C3%BCt%C3%BC&i=kitchen&bbn=44219324031&rh=n%3A12466781031%2Cn%3A44219324031%2Cn%3A13511263031%2Cp_98%3A21345978031&dc&ds=v1%3AHYjdBzAN2kU6ULIuvKoAXPzXAZnFPdzInq5ICe4PnJQ&__mk_tr_TR=%C3%85M%C3%85%C5%BD%C3%95%C3%91"
 COOKIE_FILE = "cookie_cep.json"
 SENT_FILE = "send_products.txt"
@@ -78,7 +77,6 @@ def get_driver():
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.set_page_load_timeout(30)  # ⏱️ Sayfa yükleme süresi sınırı
     return driver
-
 def scroll_page(driver, pause=1.5, steps=5):
     for _ in range(steps):
         driver.execute_script("window.scrollBy(0, 1000);")
@@ -152,7 +150,6 @@ def run():
     check_timeout()
 
     driver.get(URL)
-    check_timeout()
     time.sleep(2)
     load_cookies(driver)
     check_timeout()
@@ -187,7 +184,7 @@ def run():
                 continue
 
             title = item.find_element(By.CSS_SELECTOR, "img.s-image").get_attribute("alt").strip()
-            amazon_link = item.find_element(By.CSS_SELECTOR, "a.a-link-normal").get_attribute("href")
+            link = item.find_element(By.CSS_SELECTOR, "a.a-link-normal").get_attribute("href")
             image = item.find_element(By.CSS_SELECTOR, "img.s-image").get_attribute("src")
 
             price = get_used_price_from_item(item)
@@ -200,7 +197,7 @@ def run():
             products.append({
                 "asin": asin,
                 "title": title,
-                "amazon_link": amazon_link,  # ✅ gerçek Amazon linki
+                "link": link,
                 "image": image,
                 "price": price
             })
@@ -232,9 +229,6 @@ def run():
             if new_val < old_val:
                 print(f"📉 Fiyat düştü: {product['title']} → {old_price} → {price}")
                 product["old_price"] = old_price
-                product["slug"] = slugify(product["title"])
-                product["image"] = f"https://anticomm.github.io/urunlerim/img/{product['slug']}.png"
-                product["link"] = f"https://anticomm.github.io/urunlerim/urun/{product['slug']}.html"
                 products_to_send.append(product)
             else:
                 print(f"⏩ Fiyat yükseldi veya aynı: {product['title']} → {old_price} → {price}")
@@ -242,9 +236,6 @@ def run():
 
         else:
             print(f"🆕 Yeni ürün: {product['title']}")
-            product["slug"] = slugify(product["title"])
-            product["image"] = f"https://anticomm.github.io/urunlerim/img/{product['slug']}.png"
-            product["link"] = f"https://anticomm.github.io/urunlerim/urun/{product['slug']}.html"
             products_to_send.append(product)
             sent_data[asin] = price
 
@@ -259,7 +250,6 @@ def run():
 
 if __name__ == "__main__":
     try:
-        check_timeout()
         run()
     except TimeoutError as e:
         print(f"⏹️ Zincir durduruldu: {e}")
