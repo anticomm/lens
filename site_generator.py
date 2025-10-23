@@ -48,7 +48,7 @@ def update_category_page():
 
 def generate_html(product):
     with open("template.html", "r", encoding="utf-8") as f:
-    template = f.read()
+        template = f.read()
     slug = product.get("slug", "urun")
     title = product.get("title", "Ürün")
     price = product.get("price", "")
