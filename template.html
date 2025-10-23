@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head itemscope itemtype="https://schema.org/WebSite">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{title}</title>
+  <meta name="description" content="{title} ürününün fiyatı, özellikleri ve yorumları.">
+  <meta property="og:title" content="{title}" />
+  <meta property="og:image" content="{image}" />
+  <meta property="og:description" content="{title} hakkında detaylı bilgi ve fiyat karşılaştırması.">
+  <meta property="product:price:amount" content="{price_html}" />
+  <meta property="product:price:currency" content="TRY" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <script src="js/jquery/jquery.min.js"></script>
+  <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+</head>
+<body>
+<div id="page" class="site">
+<header id="masthead" class="site-header">
+  <div class="container">
+    <div class="site-branding">
+      <a href="/">
+        <img src="img/logo.svg" alt="Site Logosu" width="180" height="47">
+      </a>
+      <p class="site-description">Popüler ürünleri takip eder, en iyi zamanı seçmenize yardımcı olur.</p>
+    </div>
+  </div>
+</header>
+<main id="main" class="site-main">
+<article class="product-entry">
+  <header class="entry-header">
+    <h1 class="entry-title">{title}</h1>
+  </header>
+
+  <figure class="post-thumbnail">
+    <img src="{image}" alt="{title}" width="838" height="471" />
+  </figure>
+
+  <div class="entry-content" itemprop="text">
+    <span class="fiyat">{price_html}</span>
+    <span class="guncel" style="color:#8E8E8E;font-size: 14px">&nbsp;&nbsp;&nbsp;↻ {date} tarihinde güncellendi.</span>
+    <br>
+    <span class="kupon"></span>
+    <span class="telegram">
+      <a href="https://t.me/onual_firsat" target="_blank">
+        📲 Bu ürün indirime girdiğinde Telegram’dan bildirim alın!
+      </a>
+      <br><br>
+    </span>
+    <a class="btn" id="buton" style="color: #fff; background-color: #e67e22; text-decoration: none;" href="{link}" target="_blank">Fırsata Git</a>
+    <br><br>
+    <span class="mobil-uyari" style="color:#B0B0B0">
+      📢 Bağlantıyı açarken sorun yaşıyorsanız telefonunuzda ilgili uygulamanın yüklü ve güncel olduğundan emin olun.
+      <br><br>
+    </span>
+    <b>Pazaryeri:</b> Amazon<br>
+    <b>Satıcı:</b> -<br>
+    <b>Kargo:</b> 150 TL ve Üzeri Kargo Bedava<br>
+    <b>Ürün Kimliği:</b> {asin}<br>
+    <b>Barkod Numarası:</b> -<br>
+    <b>Stok Durumu:</b> <font color="#e67e22">Stokta Var</font><br><br>
+    <b>Özellikler:</b>
+    <ul>{specs_html}</ul>
+    <p>⭐ {rating}</p>
+  </div>
+  <h3 style="margin-top: 30px;">Fiyat Geçmişi Grafiği</h3>
+  <div id="chartContainer" style="height: 350px; width: 100%;"></div>
+
+  <footer class="entry-footer">
+    <div class="tags" itemprop="about">
+      <span>Etiket:</span> Amazon, {asin}
+    </div>
+    <div class="entry-footer-right">
+      <span class="posted-on">
+        <time class="entry-date" datetime="{date}">{date}</time>
+      </span>
+      <span class="comment-box">
+        <a href="iletisim">sorun bildir</a>
+      </span>
+    </div>
+  </footer>
+</article>
+</main>
+<aside id="secondary" class="widget-area" role="complementary">
+  <section class="widget widget_search">
+    <form role="search" method="get" action="ara.php">
+      <label for="search">Ürün Ara</label>
+      <input type="search" id="search" name="s" placeholder="Ürün adı girin..." required />
+      <button type="submit">Ara</button>
+    </form>
+  </section>
+
+  <section class="widget">
+    <h2>Bildirim Al</h2>
+    <a class="btn" href="https://t.me/onual_firsat" target="_blank" style="background-color:#e67e22; color:#fff; padding:8px 12px; display:inline-block; text-decoration:none;">Telegram’dan Takip Et</a>
+  </section>
+</aside>
+<footer id="colophon" class="site-footer" itemscope itemtype="https://schema.org/WPFooter">
+  <div class="footer-b">
+    <div class="container">
+      <div class="footer-note">
+        <span class="footer-text">
+          Ürün fiyatları ve bulunabilirliği belirtilen tarih/saat itibariyle doğrudur ve değişebilir.
+          Satın alma sırasında görüntülenen tüm fiyat ve stok durumu bilgileri, bu ürünün satın alınması için geçerli olacaktır.
+        </span>
+      </div>
+    </div>
+  </div>
+</footer>
+</div> <!-- #page -->
+</div> <!-- .site -->
+
+<script type="text/javascript">
+  var hashParams = window.location.hash.substr(1).split('&');
+  for (var i = 0; i < hashParams.length; i++) {
+    var p = hashParams[i].split('=');
+    var paramName = p[0];
+
+    if (paramName === "fiyat") {
+      if (/^\d+$/.test(p[1]) && p[1].length <= 8) {
+        var spanElement = document.querySelector('.' + paramName);
+        if (spanElement) {
+          spanElement.textContent = decodeURIComponent(Number(p[1]).toLocaleString('tr-TR') + " TL");
+        }
+      }
+    }
+
+    if (paramName === "kullanici") {
+      if (/^\d+$/.test(p[1]) && p[1].length === 2) {
+        const kullaniciIsimleri = {
+          42: 'Admin', 95: 'Sümeyye', 68: 'Ceren', 60: 'Ali',
+          15: 'Fahriye', 55: 'Fulya', 10: 'Büşra'
+        };
+        const kullaniciIsmi = kullaniciIsimleri[p[1]];
+        if (kullaniciIsmi) {
+          const divElement = document.querySelector('.tags');
+          if (divElement) {
+            divElement.innerHTML += `, ${kullaniciIsmi}`;
+          }
+        }
+      }
+    }
+
+    if (paramName === "kupon") {
+      function normalize(text) {
+        return text.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, '')
+          .replace(/İ/g, 'I').replace(/Ş/g, 'S').replace(/Ğ/g, 'G')
+          .replace(/Ü/g, 'U').replace(/Ö/g, 'O').replace(/Ç/g, 'C');
+      }
+
+      var spanElement = document.querySelector('.' + paramName);
+      if (spanElement) {
+        const kuponOrijinal = decodeURIComponent(p[1]);
+        const kuponKarsilastirma = normalize(kuponOrijinal);
+        if (kuponKarsilastirma.length <= 20) {
+          if (/^ALT\d+$/.test(kuponKarsilastirma)) {
+            let miktar = kuponKarsilastirma.match(/\d+/)[0];
+            spanElement.innerHTML = `⚠️ Ürünün altındaki ${miktar} TL'lik indirim kuponunu alın ve sepette uygulayın.<br><br>`;
+          } else if (kuponKarsilastirma === "ALT") {
+            spanElement.innerHTML = '⚠️ Ürünün altındaki indirim kuponunu alın ve sepette uygulayın.<br><br>';
+          } else if (kuponKarsilastirma === "TAKIP") {
+            spanElement.innerHTML = '⚠️ Mağaza takip kuponunu alın, ürünü sepete atın ve kuponu sepette uygulayın.<br><br>';
+          } else if (kuponKarsilastirma === "KULLAN") {
+            spanElement.innerHTML = '⚠️ Ürün sayfasında kampanya mesajının yanında bulunan <b>Kullan/Uygula</b> butonuna tıklayın.<br><br>';
+          } else if (kuponKarsilastirma === "VISA") {
+            spanElement.innerHTML = '⚠️ İndirimli fiyatı görmek için ödeme aşamasında <b>Visa kart</b> bilgilerinizi girin.<br><br>';
+          } else if (/^SEPETTE\d+$/.test(kuponKarsilastirma)) {
+            let miktar = kuponKarsilastirma.match(/\d+/)[0];
+            spanElement.innerHTML = `⚠️ İndirimli fiyatı görmek için ürünü sepete atın ve sepette çıkan ${miktar} TL'lik kuponu uygulayın.<br><br>`;
+          } else if (kuponKarsilastirma === "SEPETTE") {
+            spanElement.innerHTML = '⚠️ İndirimli fiyatı görmek için ürünü sepete atın ve sepette çıkan kuponu uygulayın.<br><br>';
+          } else if (/^TIKHIZI\d+$/.test(kuponKarsilastirma)) {
+            let miktar = kuponKarsilastirma.match(/\d+/)[0];
+            spanElement.innerHTML = `⚠️ Tık hızında kampanyasından ${miktar} TL'lik indirim kuponunu alın ve sepette uygulayın.<br><br>`;
+          } else if (kuponKarsilastirma === "SEPET") {
+            spanElement.innerHTML = '⚠️ İndirimli fiyatı görmek için ürünü sepete atın ve ödeme aşamasına ilerleyin.<br><br>';
+          } else {
+            spanElement.innerHTML = `⚠️ Ürünü sepete atın ve "<b>${kuponOrijinal}</b>" indirim kodunu uygulayın.<br><br>`;
+          }
+
+          var telegramElement = document.querySelector('.telegram');
+          if (telegramElement) {
+            telegramElement.style.display = 'none';
+          }
+        }
+      }
+    }
+
+    const linkMap = {
+      link_t: "https://paylaskazan.teknosa.com/teknosa-",
+      link_h: "https://app.hb.biz/",
+      link_n: "https://sl.n11.com/n/",
+      link_y: "https://ty.gl/",
+      link_m: "http://zxro.com/u/?redirect=1&url=https://www.yukarikaydir.com/migros/"
+    };
+
+    for (const key in linkMap) {
+      if (paramName === key) {
+        var butonElement = document.getElementById("buton");
+        if (butonElement && p[1].length <= 14) {
+          butonElement.href = linkMap[key] + p[1];
+          butonElement.innerHTML = "Kampanyaya Git";
+        }
+      }
+    }
+  }
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(function () {
+      var canvasJsCredit = document.querySelector('.canvasjs-chart-credit');
+      if (canvasJsCredit) {
+        canvasJsCredit.style.display = 'none';
+      }
+    }, 3000);
+  });
+</script>
+
+</body>
+</html>
