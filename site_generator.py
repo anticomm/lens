@@ -131,12 +131,13 @@ def main():
         for line in f:
             if " | " in line:
                 asin, price = line.strip().split(" | ")
+                image_url = get_amazon_image_url(asin)
                 products.append({
                     "slug": asin,
                     "title": asin,
                     "price": price,
                     "amazon_link": f"https://www.amazon.com.tr/dp/{asin}",
-                    "image": f"https://anticomm.github.io/urunlerim/img/{asin}.png"
+                    "image": image_url
                 })
 
     for product in products:
