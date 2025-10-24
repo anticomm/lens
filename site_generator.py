@@ -3,7 +3,7 @@ import subprocess
 import requests
 from bs4 import BeautifulSoup
 
-def get_amazon_image_url(asin):
+def get_amazon_data(asin):
     url = f"https://www.amazon.com.tr/dp/{asin}"
     headers = {
         "User-Agent": "Mozilla/5.0",
@@ -13,52 +13,29 @@ def get_amazon_image_url(asin):
         response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, "html.parser")
 
-        # 1. <img id="landingImage">
+        # Başlık
+        title_tag = soup.find("span", {"id": "productTitle"})
+        title = title_tag.get_text(strip=True) if title_tag else asin
+
+        # Görsel
+        img_url = ""
         img_tag = soup.find("img", {"id": "landingImage"})
         if img_tag and img_tag.get("src"):
-            return img_tag["src"]
-
-        # 2. data-a-dynamic-image içinden
-        dynamic_img = soup.find("img", {"data-a-dynamic-image": True})
-        if dynamic_img:
-            raw = dynamic_img["data-a-dynamic-image"]
+            img_url = img_tag["src"]
+        elif soup.find("img", {"data-a-dynamic-image": True}):
+            raw = soup.find("img", {"data-a-dynamic-image": True})["data-a-dynamic-image"]
             urls = list(json.loads(raw).keys())
             if urls:
-                return urls[0]
+                img_url = urls[0]
+        elif soup.select_one("img[src*='images-na.ssl-images-amazon.com']"):
+            img_url = soup.select_one("img[src*='images-na.ssl-images-amazon.com']")["src"]
+        elif soup.find("img", {"data-old-hires": True}):
+            img_url = soup.find("img", {"data-old-hires": True})["data-old-hires"]
 
-        # 3. Genel Amazon görseli
-        fallback = soup.select_one("img[src*='images-na.ssl-images-amazon.com']")
-        if fallback and fallback.get("src"):
-            return fallback["src"]
-
-        # 4. data-old-hires doğrudan
-        old_hires_img = soup.find("img", {"data-old-hires": True})
-        if old_hires_img and old_hires_img.get("data-old-hires"):
-            return old_hires_img["data-old-hires"]
-
-        print(f"⚠️ Hiçbir görsel bulunamadı: {asin}")
-        return ""
+        return title, img_url
     except Exception as e:
-        print(f"❌ Amazon görseli alınamadı: {asin} → {e}")
-        return ""
-def get_amazon_title(asin):
-    url = f"https://www.amazon.com.tr/dp/{asin}"
-    headers = {
-        "User-Agent": "Mozilla/5.0",
-        "Accept-Language": "tr-TR,tr;q=0.9"
-    }
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        soup = BeautifulSoup(response.text, "html.parser")
-        title_tag = soup.find("span", {"id": "productTitle"})
-        if title_tag:
-            return title_tag.get_text(strip=True)
-        print(f"⚠️ Ürün başlığı bulunamadı: {asin}")
-        return asin  # fallback olarak ASIN
-    except Exception as e:
-        print(f"❌ Ürün başlığı alınamadı: {asin} → {e}")
-        return asin
-
+        print(f"❌ Amazon verisi alınamadı: {asin} → {e}")
+        return asin, ""
 
 def shorten_url(url):
     return url  # Şimdilik doğrudan geçiyoruz, istersen bit.ly entegrasyonu ekleriz
@@ -190,9 +167,16 @@ def main():
         for line in f:
             if " | " in line:
                 asin, price = line.strip().split(" | ")
-                title = get_amazon_title(asin)
-                image_url = get_amazon_image_url(asin)
+                title, image_url = get_amazon_data(asin)
+
+                if not image_url:
+                    print(f"⚠️ Görsel bulunamadı: {asin}")
+                if title == asin:
+                    print(f"⚠️ Başlık bulunamadı: {asin}")
+
                 print(f"🖼️ {asin} → {image_url}")
+                print(f"📦 {asin} → {title}")
+
                 products.append({
                     "slug": asin,
                     "title": title,
