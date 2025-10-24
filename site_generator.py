@@ -12,15 +12,31 @@ def get_amazon_image_url(asin):
     try:
         response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, "html.parser")
+
+        # 1. <img id="landingImage">
         img_tag = soup.find("img", {"id": "landingImage"})
         if img_tag and img_tag.get("src"):
             return img_tag["src"]
-        else:
-            print(f"⚠️ Görsel bulunamadı: {asin}")
-            return ""
+
+        # 2. data-a-dynamic-image içinden
+        dynamic_img = soup.find("img", {"data-a-dynamic-image": True})
+        if dynamic_img:
+            raw = dynamic_img["data-a-dynamic-image"]
+            urls = list(json.loads(raw).keys())
+            if urls:
+                return urls[0]
+
+        # 3. Genel Amazon görseli
+        fallback = soup.select_one("img[src*='images-na.ssl-images-amazon.com']")
+        if fallback and fallback.get("src"):
+            return fallback["src"]
+
+        print(f"⚠️ Hiçbir görsel bulunamadı: {asin}")
+        return ""
     except Exception as e:
         print(f"❌ Amazon görseli alınamadı: {asin} → {e}")
         return ""
+
 
 def shorten_url(url):
     return url  # Şimdilik doğrudan geçiyoruz, istersen bit.ly entegrasyonu ekleriz
@@ -153,6 +169,7 @@ def main():
             if " | " in line:
                 asin, price = line.strip().split(" | ")
                 image_url = get_amazon_image_url(asin)
+                print(f"🖼️ {asin} → {image_url}")
                 products.append({
                     "slug": asin,
                     "title": asin,
