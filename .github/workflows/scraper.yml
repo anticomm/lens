@@ -67,7 +67,7 @@ jobs:
           git push || echo "⏩ Push başarısız ama zincir devam ediyor"
 
       - name: 30 saniye bekle
-        run: sleep 30
+        run: sleep 3
 
       - name: Scraper B'yi tetikle
         run: |
