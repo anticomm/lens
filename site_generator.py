@@ -31,6 +31,11 @@ def get_amazon_image_url(asin):
         if fallback and fallback.get("src"):
             return fallback["src"]
 
+        # 4. data-old-hires doğrudan
+        old_hires_img = soup.find("img", {"data-old-hires": True})
+        if old_hires_img and old_hires_img.get("data-old-hires"):
+            return old_hires_img["data-old-hires"]
+
         print(f"⚠️ Hiçbir görsel bulunamadı: {asin}")
         return ""
     except Exception as e:
