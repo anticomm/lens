@@ -7,7 +7,7 @@ def format_product_message(product):
     old_price = product.get("old_price", "")  # 👈 Yeni satır
     asin = product.get("asin")
     if asin:
-        link = f"https://anticomm.github.io/urunlerim/urun/{asin}.html"
+        link = f"https://anticomm.github.io/urun/{asin}.html"
     else:
         link = product.get("link", "#")
     discount = product.get("discount", "")
