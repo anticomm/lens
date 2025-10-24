@@ -41,6 +41,23 @@ def get_amazon_image_url(asin):
     except Exception as e:
         print(f"❌ Amazon görseli alınamadı: {asin} → {e}")
         return ""
+def get_amazon_title(asin):
+    url = f"https://www.amazon.com.tr/dp/{asin}"
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept-Language": "tr-TR,tr;q=0.9"
+    }
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.text, "html.parser")
+        title_tag = soup.find("span", {"id": "productTitle"})
+        if title_tag:
+            return title_tag.get_text(strip=True)
+        print(f"⚠️ Ürün başlığı bulunamadı: {asin}")
+        return asin  # fallback olarak ASIN
+    except Exception as e:
+        print(f"❌ Ürün başlığı alınamadı: {asin} → {e}")
+        return asin
 
 
 def shorten_url(url):
@@ -173,11 +190,12 @@ def main():
         for line in f:
             if " | " in line:
                 asin, price = line.strip().split(" | ")
+                title = get_amazon_title(asin)
                 image_url = get_amazon_image_url(asin)
                 print(f"🖼️ {asin} → {image_url}")
                 products.append({
                     "slug": asin,
-                    "title": asin,
+                    "title": title,
                     "price": price,
                     "amazon_link": f"https://www.amazon.com.tr/dp/{asin}",
                     "image": image_url
