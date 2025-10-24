@@ -49,6 +49,7 @@ def update_category_page():
 def generate_html(product):
     with open("template.html", "r", encoding="utf-8") as f:
         template = f.read()
+
     slug = product.get("slug", "urun")
     title = product.get("title", "Ürün")
     price = product.get("price", "")
@@ -57,37 +58,27 @@ def generate_html(product):
     specs = product.get("specs", [])
     image = product.get("image", "")
     link = shorten_url(product.get("amazon_link", "#"))
+    asin = slug
+    date = product.get("date", "2025-10-24")
 
-    teknik = "".join([f"<li>{spec}</li>" for spec in specs])
-    fiyat_html = f"<p><del>{old_price}</del> → <strong>{price}</strong></p>" if old_price and old_price != price else f"<p><strong>{price}</strong></p>"
+    specs_html = "".join([f"<li>{spec}</li>" for spec in specs])
+    fiyat_html = (
+        f"<p><del>{old_price}</del> → <strong>{price}</strong></p>"
+        if old_price and old_price != price
+        else f"<p><strong>{price}</strong></p>"
+    )
 
-    html = f"""<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <title>{title}</title>
-  <link rel="stylesheet" href="../style.css">
-</head>
-<body>
-  <div class="urun-sayfa">
-    <div class="reklam-banner">
-      <p>🔔 En iyi fırsatları kaçırma! Reklam alanı buraya gelecek.</p>
-    </div>
-    <div class="urun-detay">
-      <img src="{image}" alt="{title}">
-      <h1>{title}</h1>
-      {fiyat_html}
-      <p>⭐ {rating}</p>
-      <ul>{teknik}</ul>
-      <a class="firsat-btn" href="{link}" target="_blank">Fırsata Git</a>
-    </div>
-    <div class="bildirim-alani">
-      <button onclick="alert('Bildirim isteğin alındı!')">🔔 Bildirim Al</button>
-    </div>
-  </div>
-</body>
-</html>
-"""
+    html = template.format(
+        title=title,
+        image=image,
+        price_html=fiyat_html,
+        specs_html=specs_html,
+        rating=rating,
+        link=link,
+        asin=asin,
+        date=date
+    )
+
     return html, slug
 
 def process_product(product):
