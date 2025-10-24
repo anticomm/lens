@@ -266,7 +266,8 @@ def run():
             for p in products_to_send:
                 f.write(f"{p['asin']} | {p['price']}\n")
 
-        site.main()  # ✅ HTML sayfalarını üret, index.html güncelle, submodule push et
+        site_generator.generate_site(products_to_send)
+        print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
 
         print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
     else:
