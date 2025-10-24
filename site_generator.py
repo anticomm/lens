@@ -1,5 +1,26 @@
 import os
 import subprocess
+import requests
+from bs4 import BeautifulSoup
+
+def get_amazon_image_url(asin):
+    url = f"https://www.amazon.com.tr/dp/{asin}"
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept-Language": "tr-TR,tr;q=0.9"
+    }
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.text, "html.parser")
+        img_tag = soup.find("img", {"id": "landingImage"})
+        if img_tag and img_tag.get("src"):
+            return img_tag["src"]
+        else:
+            print(f"⚠️ Görsel bulunamadı: {asin}")
+            return ""
+    except Exception as e:
+        print(f"❌ Amazon görseli alınamadı: {asin} → {e}")
+        return ""
 
 def shorten_url(url):
     return url  # Şimdilik doğrudan geçiyoruz, istersen bit.ly entegrasyonu ekleriz
