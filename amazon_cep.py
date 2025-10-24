@@ -266,7 +266,7 @@ def run():
             for p in products_to_send:
                 f.write(f"{p['asin']} | {p['price']}\n")
 
-        site_generator.generate_site(products_to_send)
+        site.generate_site(products_to_send)
         print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
 
         print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
