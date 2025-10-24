@@ -204,6 +204,7 @@ def run():
                 continue
 
             products.append({
+                "slug": asin,
                 "asin": asin,
                 "title": title,
                 "link": link,
