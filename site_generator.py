@@ -4,8 +4,8 @@ import json
 from collections import defaultdict
 
 # ---------- Ayarlar ----------
-PRODUCTS_JSON = "products.json"      # amazon_cep.py'nin üretebileceği JSON (asin -> meta)
-SEND_FILE = "send_products.txt"      # mevcut: "ASIN | price"
+PRODUCTS_JSON = "products.json"
+SEND_FILE = "send_products.txt"
 URUNLERIM_DIR = "urunlerim"
 
 # ---------- Yardımcılar ----------
@@ -15,16 +15,15 @@ def load_products_json(path):
     try:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
-            # Beklenen format: { "B079...": {"title": "...", "image": "...", "price": "...", ...}, ... }
             return data
     except Exception as e:
         print(f"❌ products.json okunamadı: {e}")
         return {}
 
 def shorten_url(url):
-    return url  # placeholder
+    return url
 
-# ---------- Kategori sayfası güncelle ----------
+# ---------- Kategori sayfası ----------
 def update_category_page():
     try:
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -67,7 +66,7 @@ def update_category_page():
     except Exception as e:
         print(f"❌ Kategori sayfası hatası: {e}")
 
-# ---------- HTML üretme ----------
+# ---------- HTML üretimi ----------
 def generate_html_from_template(product, template_path="template.html"):
     try:
         with open(template_path, "r", encoding="utf-8") as f:
@@ -107,12 +106,12 @@ def generate_html_from_template(product, template_path="template.html"):
     html = template.format_map(data)
     return html, slug
 
-# ---------- Ürün işleme (dosya yazma + git push) ----------
+# ---------- HTML oluştur + Git push ----------
 def process_product_and_push(product, urunlerim_dir=URUNLERIM_DIR, push=True):
-    print(f"[PRE-PROCESS] slug={product.get('slug')} asin={product.get('asin')} title={repr(product.get('title'))} keys={list(product.keys())}")
+    print(f"[PRE-PROCESS] slug={product.get('slug')} asin={product.get('asin')} title={repr(product.get('title'))}")
 
     if not product.get("title"):
-        print(f"[SKIP] HTML oluşturulmadı çünkü title yok -> {product.get('asin')}")
+        print(f"[SKIP] HTML oluşturulmadı çünkü title yok → {product.get('asin')}")
         return False
 
     html, slug = generate_html_from_template(product)
@@ -123,7 +122,7 @@ def process_product_and_push(product, urunlerim_dir=URUNLERIM_DIR, push=True):
         debug_path = os.path.join(os.getcwd(), f"debug_{slug}.html")
         with open(debug_path, "w", encoding="utf-8") as dbg:
             dbg.write(html)
-        print(f"[DEBUG] Başlık html içinde bulunamadı, debug dosyası oluşturuldu: {debug_path}")
+        print(f"[DEBUG] Başlık HTML içinde bulunamadı → {debug_path}")
 
     URUNLERIM_PATH = os.path.join(os.getcwd(), urunlerim_dir)
     os.makedirs(os.path.join(URUNLERIM_PATH, "urun"), exist_ok=True)
@@ -135,10 +134,9 @@ def process_product_and_push(product, urunlerim_dir=URUNLERIM_DIR, push=True):
             f.write(html)
         print(f"✅ HTML sayfası oluşturuldu: {path}")
     except Exception as e:
-        print(f"❌ HTML sayfası oluşturulamadı: {e}")
+        print(f"❌ HTML yazma hatası: {e}")
         return False
 
-    # opsiyonel: git commit ve push (submodule token ayarlıysa)
     if push:
         try:
             subprocess.run(["git", "-C", urunlerim_dir, "config", "user.name", "github-actions"], check=True)
@@ -157,21 +155,18 @@ def process_product_and_push(product, urunlerim_dir=URUNLERIM_DIR, push=True):
             print("🚀 HTML dosyaları GitHub'a gönderildi.")
         except Exception as e:
             print(f"❌ Git işlemi başarısız: {e}")
-            # push başarısında bile dosyalar localde oluşturulmuştur
             return False
 
     return True
 
 # ---------- Main ----------
 def main():
-    # 1) amazon_cep.py'nin ürettiği JSON'ı yükle (tercihli kaynak)
     meta = load_products_json(PRODUCTS_JSON)
     if meta:
         print(f"✅ {PRODUCTS_JSON} yüklendi, {len(meta)} ürün bulundu.")
     else:
-        print(f"ℹ️ {PRODUCTS_JSON} bulunamadı veya boş. send_products.txt'ten işlem denenecek.")
+        print(f"ℹ️ {PRODUCTS_JSON} bulunamadı veya boş. send_products.txt ile devam edilecek.")
 
-    # 2) send_products.txt oku
     if not os.path.exists(SEND_FILE):
         print(f"❌ {SEND_FILE} bulunamadı.")
         return
@@ -180,48 +175,27 @@ def main():
     with open(SEND_FILE, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
-            if not line:
-                continue
-            print(f"[READ send_products] {line}")
-            if " | " not in line:
+            if not line or " | " not in line:
                 continue
             asin, price = line.split(" | ", 1)
             asin = asin.strip()
             price = price.strip()
 
-            # 1. tercih: metadata JSON'ta var mı?
             if asin in meta:
                 m = meta[asin]
-                title = m.get("title") or ""
-                image = m.get("image") or m.get("img") or ""
-                old_price = m.get("old_price", "")
-                amazon_link = m.get("amazon_link") or f"https://www.amazon.com.tr/dp/{asin}"
                 products_to_process.append({
                     "asin": asin,
                     "slug": asin,
-                    "title": title,
-                    "price": price or m.get("price",""),
-                    "old_price": old_price,
-                    "amazon_link": amazon_link,
-                    "image": image,
-                    "rating": m.get("rating",""),
+                    "title": m.get("title", ""),
+                    "price": price or m.get("price", ""),
+                    "old_price": m.get("old_price", ""),
+                    "amazon_link": m.get("amazon_link", f"https://www.amazon.com.tr/dp/{asin}"),
+                    "image": m.get("image", ""),
+                    "rating": m.get("rating", ""),
                     "specs": m.get("specs", []),
-                    "date": m.get("date","")
+                    "date": m.get("date", "")
                 })
             else:
-                # Eğer metadata yoksa (amazon_cep.py üretmediyse), HTML oluşturma için başlık yoksa atla
-                print(f"⚠️ Metadata yok: {asin} — HTML oluşturulmayacak (amazon_cep.py ile products.json üretin).")
-                continue
+                print(f"⚠️ Metadata yok: {asin} → HTML oluşturulmayacak")
 
-    # 3) her ürünü işle
-    processed = 0
-    for p in products_to_process:
-        ok = process_product_and_push(p)
-        if ok:
-            processed += 1
-
-    update_category_page()
-    print(f"📁 Dosya güncellendi: {processed} ürün eklendi/güncellendi.")
-
-if __name__ == "__main__":
-    main()
+    processed =
