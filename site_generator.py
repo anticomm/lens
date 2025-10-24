@@ -141,34 +141,7 @@ def process_product(product):
     except Exception as e:
         print(f"❌ Git işlemi başarısız: {e}")
 
-def main():
-    products = []
-    with open("send_products.txt", "r", encoding="utf-8") as f:
-        for line in f:
-            if " | " in line:
-                asin, price = line.strip().split(" | ")
-                title, image_url = get_amazon_data(asin)
-
-                if not image_url:
-                    print(f"⚠️ Görsel bulunamadı: {asin}")
-                if title == asin:
-                    print(f"⚠️ Başlık bulunamadı: {asin}")
-
-                print(f"🖼️ {asin} → {image_url}")
-                print(f"📦 {asin} → {title}")
-
-                products.append({
-                    "slug": asin,
-                    "title": title,
-                    "price": price,
-                    "amazon_link": f"https://www.amazon.com.tr/dp/{asin}",
-                    "image": image_url
-                })
-
+def generate_site(products):
     for product in products:
         process_product(product)
-
     update_category_page()
-
-if __name__ == "__main__":
-    main()
