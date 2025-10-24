@@ -1,6 +1,7 @@
 import os
 import subprocess
 import requests
+import json
 from bs4 import BeautifulSoup
 
 def get_amazon_data(asin):
