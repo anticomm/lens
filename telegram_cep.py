@@ -59,7 +59,7 @@ def send_message(product):
     try:
         reply_markup = json.dumps({
             "inline_keyboard": [[
-                {"text": "AÇ", "url": link}
+                {"text": "🛍️AÇ", "url": link}
             ]]
         })
 
