@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 
 def format_product_message(product):
     title = product.get("title", "🛍️ Ürün adı bulunamadı")
