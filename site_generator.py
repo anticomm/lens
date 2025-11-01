@@ -41,11 +41,9 @@ def shorten_url(url):
 
 def update_category_page():
     try:
-        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        URUNLERIM_PATH = os.path.join(BASE_DIR, "urunlerim")
-        urun_klasoru = os.path.join(URUNLERIM_PATH, "Elektronik")
-        os.makedirs(urun_klasoru, exist_ok=True)
-        html_dosyalar = [f for f in os.listdir(urun_klasoru) if f.endswith(".html") and f != "index.html"]
+        kategori_path = os.path.join("urunlerim", "Elektronik")
+        os.makedirs(kategori_path, exist_ok=True)
+        html_dosyalar = [f for f in os.listdir(kategori_path) if f.endswith(".html") and f != "index.html"]
 
         liste = ""
         for dosya in sorted(html_dosyalar):
@@ -54,7 +52,7 @@ def update_category_page():
 
         html = f"""<!DOCTYPE html>
 <html lang="tr"><head><meta charset="UTF-8"><title>Elektronik Ürünler</title><link rel="stylesheet" href="../style.css"></head><body><div class="navbar"><ul><li><a href="/">Anasayfa</a></li><li><a href="index.html">Elektronik</a></li></ul></div><div class="container"><h1>📦 Elektronik Ürünler</h1><ul>{liste}</ul></div></body></html>"""
-        with open(os.path.join(urun_klasoru, "index.html"), "w", encoding="utf-8") as f:
+        with open(os.path.join(kategori_path, "index.html"), "w", encoding="utf-8") as f:
             f.write(html)
         print("✅ Elektronik kategori sayfası güncellendi.")
     except Exception as e:
@@ -99,14 +97,15 @@ def process_product(product):
     html, slug = generate_html(product)
     kategori_path = os.path.join("urunlerim", "Elektronik")
     os.makedirs(kategori_path, exist_ok=True)
-    path = os.path.join(kategori_path, "index.html")
-    relative_path = os.path.relpath(path, "urunlerim")
+    filename = f"{slug}.html"
+    path = os.path.join(kategori_path, filename)
+    relative_path = os.path.join("Elektronik", filename)
 
     try:
         with open(path, "w", encoding="utf-8") as f:
             f.write(html)
         os.utime(path, None)
-        print(f"✅ Elektronik sayfası oluşturuldu: {path}")
+        print(f"✅ Ürün sayfası oluşturuldu: {path}")
     except Exception as e:
         print(f"❌ HTML sayfası oluşturulamadı: {e}")
         return
@@ -115,9 +114,8 @@ def process_product(product):
         subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "add", relative_path], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "commit", "-m", "Elektronik sayfası güncellendi"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "commit", "-m", f"{slug} ürünü eklendi"], check=True)
 
-        # 🔐 Tokenlı push
         github_token = os.getenv("GITHUB_TOKEN")
         if github_token:
             repo_url = f"https://{github_token}@github.com/anticomm/urunlerim.git"
@@ -125,7 +123,6 @@ def process_product(product):
             print("🚀 GitHub'a tokenlı push tamamlandı.")
         else:
             print("⚠️ GITHUB_TOKEN ortam değişkeni tanımlı değil. Push atlanıyor.")
-
     except Exception as e:
         print(f"❌ Git işlemi başarısız: {e}")
 
