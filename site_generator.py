@@ -113,9 +113,20 @@ def process_product(product):
     try:
         subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
+
+        # En güncel HEAD'i çek
+        subprocess.run(["git", "-C", "urunlerim", "pull", "--rebase"], check=True)
+
+        # Yeni dosyayı ekle
         subprocess.run(["git", "-C", "urunlerim", "add", relative_path], check=True)
+
+        # Commit et
         subprocess.run(["git", "-C", "urunlerim", "commit", "-m", f"{slug} ürünü eklendi"], check=True)
 
+        # Push et
+        subprocess.run(["git", "-C", "urunlerim", "push", repo_url, "HEAD:main"], check=True)
+
+        
         submodule_token = os.getenv("SUBMODULE_TOKEN")
         if submodule_token:
             repo_url = f"https://{submodule_token}@github.com/anticomm/urunlerim.git"
