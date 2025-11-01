@@ -59,8 +59,12 @@ def update_category_page():
         print(f"❌ Kategori sayfası hatası: {e}")
 
 def generate_html(product):
-    with open("template.html", "r", encoding="utf-8") as f:
-        template = f.read()
+    try:
+        with open("template.html", "r", encoding="utf-8") as f:
+            template = f.read()
+    except FileNotFoundError:
+        print("❌ template.html dosyası bulunamadı. HTML oluşturulamadı.")
+        return "", product.get("slug", "urun")
 
     slug = product.get("slug", "urun")
     title = product.get("title", "Ürün")
@@ -95,6 +99,10 @@ def generate_html(product):
 
 def process_product(product):
     html, slug = generate_html(product)
+    if not html.strip():
+        print(f"❌ HTML boş: {slug}")
+        return
+
     kategori_path = os.path.join("urunlerim", "Elektronik")
     os.makedirs(kategori_path, exist_ok=True)
     filename = f"{slug}.html"
@@ -110,31 +118,17 @@ def process_product(product):
         print(f"❌ HTML sayfası oluşturulamadı: {e}")
         return
 
+    submodule_token = os.getenv("SUBMODULE_TOKEN")
+    repo_url = f"https://{submodule_token}@github.com/anticomm/urunlerim.git" if submodule_token else "https://github.com/anticomm/urunlerim.git"
+
     try:
         subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
-
-        # En güncel HEAD'i çek
         subprocess.run(["git", "-C", "urunlerim", "pull", "--rebase"], check=True)
-
-        # Yeni dosyayı ekle
         subprocess.run(["git", "-C", "urunlerim", "add", relative_path], check=True)
-
-        # Commit et
         subprocess.run(["git", "-C", "urunlerim", "commit", "-m", f"{slug} ürünü eklendi"], check=True)
-
-        # Push et
         subprocess.run(["git", "-C", "urunlerim", "push", repo_url, "HEAD:main"], check=True)
-
-        
-        submodule_token = os.getenv("SUBMODULE_TOKEN")
-        if submodule_token:
-            repo_url = f"https://{submodule_token}@github.com/anticomm/urunlerim.git"
-            subprocess.run(["git", "-C", "urunlerim", "fetch"], check=True)
-            subprocess.run(["git", "-C", "urunlerim", "push", repo_url, "HEAD:main"], check=True)
-            print("🚀 Submodule push tamamlandı.")
-        else:
-            print("⚠️ SUBMODULE_TOKEN tanımlı değil. Submodule push atlanıyor.")
+        print("🚀 Submodule push tamamlandı.")
     except Exception as e:
         print(f"❌ Submodule Git işlemi başarısız: {e}")
 
