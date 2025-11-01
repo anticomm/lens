@@ -119,6 +119,7 @@ def process_product(product):
         submodule_token = os.getenv("SUBMODULE_TOKEN")
         if submodule_token:
             repo_url = f"https://{submodule_token}@github.com/anticomm/urunlerim.git"
+            subprocess.run(["git", "-C", "urunlerim", "pull", "--rebase"], check=True)
             subprocess.run(["git", "-C", "urunlerim", "push", repo_url, "HEAD:main"], check=True)
             print("🚀 Submodule push tamamlandı.")
         else:
