@@ -118,19 +118,33 @@ def process_product(product):
         print(f"❌ HTML sayfası oluşturulamadı: {e}")
         return
 
+    ##########################################
+    #   GİT SUBMODULE FIX (EN GÜVENLİ SÜRÜM)
+    ##########################################
+
     submodule_token = os.getenv("SUBMODULE_TOKEN")
-    repo_url = f"https://{submodule_token}@github.com/anticomm/urunlerim.git" if submodule_token else "https://github.com/anticomm/urunlerim.git"
+    repo_url = (
+        f"https://{submodule_token}@github.com/anticomm/urunlerim.git"
+        if submodule_token else "https://github.com/anticomm/urunlerim.git"
+    )
 
     try:
-        subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "fetch", "origin"], check=False)
+        subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=False)
+        subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=False)
+        subprocess.run(["git", "-C", "urunlerim", "fetch", "--all"], check=False)
         subprocess.run(["git", "-C", "urunlerim", "checkout", "main"], check=False)
-        subprocess.run(["git", "-C", "urunlerim", "pull", "--rebase"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "reset", "--hard", "origin/main"], check=False)
+
         subprocess.run(["git", "-C", "urunlerim", "add", relative_path], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "commit", "-m", f"{slug} ürünü eklendi"], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "push", repo_url, "HEAD:main"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "commit", "-m", f"{slug} ürünü eklendi"], check=False)
+
+        subprocess.run([
+            "git", "-C", "urunlerim",
+            "push", repo_url, "HEAD:main", "--force-with-lease"
+        ], check=True)
+
         print("🚀 Submodule push tamamlandı.")
+
     except Exception as e:
         print(f"❌ Submodule Git işlemi başarısız: {e}")
 
