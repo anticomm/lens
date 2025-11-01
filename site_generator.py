@@ -115,7 +115,9 @@ def process_product(product):
         subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "add", relative_path], check=True)
         subprocess.run(["git", "-C", "urunlerim", "commit", "-m", f"{slug} ürünü eklendi"], check=True)
-
+        subprocess.run(["git", "-C", "urunlerim", "fetch"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "reset", "--hard", "origin/main"], check=True)
+        
         submodule_token = os.getenv("SUBMODULE_TOKEN")
         if submodule_token:
             repo_url = f"https://{submodule_token}@github.com/anticomm/urunlerim.git"
