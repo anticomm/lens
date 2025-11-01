@@ -100,7 +100,7 @@ def process_product(product):
     kategori_path = os.path.join("urunlerim", "Elektronik")
     os.makedirs(kategori_path, exist_ok=True)
     path = os.path.join(kategori_path, "index.html")
-    relative_path = os.path.relpath(path, "urunlerim")  # 🔧 düzeltme burada
+    relative_path = os.path.relpath(path, "urunlerim")
 
     try:
         with open(path, "w", encoding="utf-8") as f:
@@ -116,8 +116,16 @@ def process_product(product):
         subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "add", relative_path], check=True)
         subprocess.run(["git", "-C", "urunlerim", "commit", "-m", "Elektronik sayfası güncellendi"], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "push", "origin", "main"], check=True)
-        print("🚀 GitHub'a otomatik push tamamlandı.")
+
+        # 🔐 Tokenlı push
+        github_token = os.getenv("GITHUB_TOKEN")
+        if github_token:
+            repo_url = f"https://{github_token}@github.com/anticomm/urunlerim.git"
+            subprocess.run(["git", "-C", "urunlerim", "push", repo_url, "HEAD:main"], check=True)
+            print("🚀 GitHub'a tokenlı push tamamlandı.")
+        else:
+            print("⚠️ GITHUB_TOKEN ortam değişkeni tanımlı değil. Push atlanıyor.")
+
     except Exception as e:
         print(f"❌ Git işlemi başarısız: {e}")
 
