@@ -116,17 +116,33 @@ def process_product(product):
         subprocess.run(["git", "-C", "urunlerim", "add", relative_path], check=True)
         subprocess.run(["git", "-C", "urunlerim", "commit", "-m", f"{slug} ürünü eklendi"], check=True)
 
-        github_token = os.getenv("GITHUB_TOKEN")
-        if github_token:
-            repo_url = f"https://{github_token}@github.com/anticomm/urunlerim.git"
+        submodule_token = os.getenv("SUBMODULE_TOKEN")
+        if submodule_token:
+            repo_url = f"https://{submodule_token}@github.com/anticomm/urunlerim.git"
             subprocess.run(["git", "-C", "urunlerim", "push", repo_url, "HEAD:main"], check=True)
-            print("🚀 GitHub'a tokenlı push tamamlandı.")
+            print("🚀 Submodule push tamamlandı.")
         else:
-            print("⚠️ GITHUB_TOKEN ortam değişkeni tanımlı değil. Push atlanıyor.")
+            print("⚠️ SUBMODULE_TOKEN tanımlı değil. Submodule push atlanıyor.")
     except Exception as e:
-        print(f"❌ Git işlemi başarısız: {e}")
+        print(f"❌ Submodule Git işlemi başarısız: {e}")
 
 def generate_site(products):
     for product in products:
         process_product(product)
     update_category_page()
+
+    try:
+        subprocess.run(["git", "config", "user.name", "github-actions"], check=True)
+        subprocess.run(["git", "config", "user.email", "actions@github.com"], check=True)
+        subprocess.run(["git", "add", "urunlerim"], check=True)
+        subprocess.run(["git", "commit", "-m", "Submodule güncellendi"], check=True)
+
+        gh_token = os.getenv("GH_TOKEN")
+        if gh_token:
+            repo_url = f"https://{gh_token}@github.com/anticomm/indirimsinyali.git"
+            subprocess.run(["git", "push", repo_url, "HEAD:master"], check=True)
+            print("🚀 Ana repo push tamamlandı.")
+        else:
+            print("⚠️ GH_TOKEN tanımlı değil. Ana repo push atlanıyor.")
+    except Exception as e:
+        print(f"❌ Ana repo Git işlemi başarısız: {e}")
