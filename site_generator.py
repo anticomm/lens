@@ -100,6 +100,7 @@ def process_product(product):
     kategori_path = os.path.join("urunlerim", "Elektronik")
     os.makedirs(kategori_path, exist_ok=True)
     path = os.path.join(kategori_path, "index.html")
+    relative_path = os.path.relpath(path, "urunlerim")  # 🔧 düzeltme burada
 
     try:
         with open(path, "w", encoding="utf-8") as f:
@@ -113,8 +114,7 @@ def process_product(product):
     try:
         subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "add", path], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "add", os.path.join("Elektronik", "index.html")], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "add", relative_path], check=True)
         subprocess.run(["git", "-C", "urunlerim", "commit", "-m", "Elektronik sayfası güncellendi"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "push", "origin", "main"], check=True)
         print("🚀 GitHub'a otomatik push tamamlandı.")
