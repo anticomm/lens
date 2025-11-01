@@ -137,14 +137,20 @@ def generate_site(products):
         subprocess.run(["git", "config", "user.name", "github-actions"], check=True)
         subprocess.run(["git", "config", "user.email", "actions@github.com"], check=True)
         subprocess.run(["git", "add", "urunlerim"], check=True)
-        subprocess.run(["git", "commit", "-m", "Submodule güncellendi"], check=True)
 
-        gh_token = os.getenv("GH_TOKEN")
-        if gh_token:
-            repo_url = f"https://{gh_token}@github.com/anticomm/indirimsinyali.git"
-            subprocess.run(["git", "push", repo_url, "HEAD:master"], check=True)
-            print("🚀 Ana repo push tamamlandı.")
+        has_changes = subprocess.call(["git", "diff", "--cached", "--quiet"]) != 0
+
+        if has_changes:
+            subprocess.run(["git", "commit", "-m", "Submodule güncellendi"], check=True)
+
+            gh_token = os.getenv("GH_TOKEN")
+            if gh_token:
+                repo_url = f"https://{gh_token}@github.com/anticomm/indirimsinyali.git"
+                subprocess.run(["git", "push", repo_url, "HEAD:master"], check=True)
+                print("🚀 Ana repo push tamamlandı.")
+            else:
+                print("⚠️ GH_TOKEN tanımlı değil. Ana repo push atlanıyor.")
         else:
-            print("⚠️ GH_TOKEN tanımlı değil. Ana repo push atlanıyor.")
+            print("⚠️ Ana repo için commit edilecek değişiklik yok.")
     except Exception as e:
         print(f"❌ Ana repo Git işlemi başarısız: {e}")
