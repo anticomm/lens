@@ -124,6 +124,8 @@ def process_product(product):
     try:
         subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "fetch", "origin"], check=False)
+        subprocess.run(["git", "-C", "urunlerim", "checkout", "main"], check=False)
         subprocess.run(["git", "-C", "urunlerim", "pull", "--rebase"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "add", relative_path], check=True)
         subprocess.run(["git", "-C", "urunlerim", "commit", "-m", f"{slug} ürünü eklendi"], check=True)
