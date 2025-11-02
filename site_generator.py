@@ -40,7 +40,7 @@ def ensure_clean_submodule():
             # 3️⃣ Commit yapılıyor
             subprocess.run(["git", "add", ".gitmodules", "urunlerim"], check=False)
             subprocess.run(["git", "commit", "-m", "Submodule otomatik olarak yeniden eklendi"], check=False)
-            subprocess.run(["git", "push", "origin", "main"], check=False)
+            subprocess.run(["git", "push", "origin", "master"], check=False)
 
             print("✅ Submodule başarıyla yeniden kuruldu.")
         else:
@@ -201,12 +201,16 @@ def process_product(product):
         subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
         subprocess.run(["git", "-C", "urunlerim", "fetch", "origin"], check=False)
-        subprocess.run(["git", "-C", "urunlerim", "checkout", "main"], check=False)
+        subprocess.run(["git", "-C", "urunlerim", "checkout", "-B", "main", "origin/main"], check=False)
         subprocess.run(["git", "-C", "urunlerim", "pull", "--rebase"], check=False)
         subprocess.run(["git", "-C", "urunlerim", "add", relative_path], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "commit", "-m", f"{slug} ürünü eklendi"], check=False)
-        subprocess.run(["git", "-C", "urunlerim", "push", repo_url, "HEAD:main", "--force-with-lease"], check=False)
-        print("🚀 Submodule push tamamlandı.")
+        has_changes = subprocess.call(["git", "-C", "urunlerim", "diff", "--cached", "--quiet"]) != 0
+        if has_changes:
+            subprocess.run(["git", "-C", "urunlerim", "commit", "-m", f"{slug} ürünü eklendi"], check=True)
+            subprocess.run(["git", "-C", "urunlerim", "push", repo_url, "main", "--force-with-lease"], check=False)
+            print("🚀 Submodule push tamamlandı.")
+        else:
+            print("⚠️ Submodule için commit edilecek değişiklik yok.")
     except Exception as e:
         print(f"❌ Submodule Git işlemi başarısız: {e}")
 
