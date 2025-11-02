@@ -22,6 +22,11 @@ jobs:
       COOKIE2_B64: ${{ secrets.COOKIE2_B64 }}
       SUBMODULE_TOKEN: ${{ secrets.SUBMODULE_TOKEN }} 
     steps:
+      - name: Submodule kimlik ayarla
+        run: |
+          git -C urunlerim config user.name "github-actions"
+          git -C urunlerim config user.email "actions@github.com"
+
       - name: Repo'yu klonla
         uses: actions/checkout@v3
         with:
