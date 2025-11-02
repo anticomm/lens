@@ -3,6 +3,67 @@ import subprocess
 import requests
 import json
 from bs4 import BeautifulSoup
+import time
+
+# ---------------------------
+# Helpers
+# ---------------------------
+
+def run(cmd, cwd=None, check=False):
+    """Basit wrapper: komutu çalıştır, stdout/stderr'i yazdır."""
+    try:
+        proc = subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        print(f"$ {' '.join(cmd)} (cwd={cwd})")
+        if proc.stdout:
+            print(proc.stdout.strip())
+        if proc.stderr:
+            print(proc.stderr.strip())
+        if check and proc.returncode != 0:
+            raise subprocess.CalledProcessError(proc.returncode, cmd, output=proc.stdout, stderr=proc.stderr)
+        return proc.returncode, proc.stdout, proc.stderr
+    except Exception as e:
+        print(f"‼️ Komut çalıştırılamadı: {' '.join(cmd)} → {e}")
+        return 1, "", str(e)
+
+def safe_git_push_submodule(repo_dir, repo_url, max_retries=2):
+    """
+    Submodule içinde güvenli bir şekilde push yapmaya çalışır.
+    Hata olursa fetch+reset ile onarır ve force-with-lease ile yeniden dener.
+    """
+    attempt = 0
+    while attempt <= max_retries:
+        attempt += 1
+        print(f"🔁 Submodule push denemesi {attempt}/{max_retries+1}...")
+        code, out, err = run(["git", "push", repo_url, "HEAD:main"], cwd=repo_dir, check=False)
+        if code == 0:
+            print("✅ Submodule push başarılı (normal push).")
+            return True
+
+        # Eğer burada reddedilmişse, retry ile onarmaya çalış
+        print("⚠️ Push reddedildi veya hata var. Onarım denenecek...")
+        # Fetch + checkout main + reset --hard origin/main ile temizle
+        run(["git", "fetch", "--all"], cwd=repo_dir, check=False)
+        run(["git", "checkout", "main"], cwd=repo_dir, check=False)
+        run(["git", "reset", "--hard", "origin/main"], cwd=repo_dir, check=False)
+
+        # Eğer commit varsa tekrar commit et (commit mesaj aynı değilse ignore ediyor)
+        run(["git", "add", "-A"], cwd=repo_dir, check=False)
+        run(["git", "commit", "-m", "Auto-commit from CI (retry push)"], cwd=repo_dir, check=False)
+
+        # force-with-lease push
+        code2, out2, err2 = run(["git", "push", repo_url, "HEAD:main", "--force-with-lease"], cwd=repo_dir, check=False)
+        if code2 == 0:
+            print("✅ Submodule push başarılı (force-with-lease).")
+            return True
+
+        print("❌ Force-with-lease de başarısız oldu, bekleyip tekrar denenecek.")
+        time.sleep(1)  # küçük bekleme
+    print("❌ Tüm push denemeleri başarısız oldu.")
+    return False
+
+# ---------------------------
+# Amazon scraping + HTML generation
+# ---------------------------
 
 def get_amazon_data(asin):
     url = f"https://www.amazon.com.tr/dp/{asin}"
@@ -97,6 +158,10 @@ def generate_html(product):
 
     return html, slug
 
+# ---------------------------
+# Yeni, dayanıklı process_product
+# ---------------------------
+
 def process_product(product):
     html, slug = generate_html(product)
     if not html.strip():
@@ -118,59 +183,55 @@ def process_product(product):
         print(f"❌ HTML sayfası oluşturulamadı: {e}")
         return
 
-    ##########################################
-    #   GİT SUBMODULE FIX (EN GÜVENLİ SÜRÜM)
-    ##########################################
-
+    # Repo URL için token kontrolü
     submodule_token = os.getenv("SUBMODULE_TOKEN")
     repo_url = (
         f"https://{submodule_token}@github.com/anticomm/urunlerim.git"
         if submodule_token else "https://github.com/anticomm/urunlerim.git"
     )
 
-    try:
-        subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=False)
-        subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=False)
-        subprocess.run(["git", "-C", "urunlerim", "fetch", "--all"], check=False)
-        subprocess.run(["git", "-C", "urunlerim", "checkout", "main"], check=False)
-        subprocess.run(["git", "-C", "urunlerim", "reset", "--hard", "origin/main"], check=False)
+    # Git kimliği ayarla (hata toleranslı)
+    run(["git", "config", "user.name", "github-actions"], cwd="urunlerim")
+    run(["git", "config", "user.email", "actions@github.com"], cwd="urunlerim")
 
-        subprocess.run(["git", "-C", "urunlerim", "add", relative_path], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "commit", "-m", f"{slug} ürünü eklendi"], check=False)
+    # İlk olarak submodule durumunu düzeltmeye çalış
+    run(["git", "fetch", "--all"], cwd="urunlerim")
+    run(["git", "checkout", "main"], cwd="urunlerim")
+    run(["git", "reset", "--hard", "origin/main"], cwd="urunlerim")
 
-        subprocess.run([
-            "git", "-C", "urunlerim",
-            "push", repo_url, "HEAD:main", "--force-with-lease"
-        ], check=True)
+    # Dosyayı ekle & commit
+    run(["git", "add", relative_path], cwd="urunlerim")
+    # commit hata verirse (örneğin zaten commit yok) devam et
+    run(["git", "commit", "-m", f"{slug} ürünü eklendi"], cwd="urunlerim")
 
+    # Önce normal push dene, değilse safe push logic uygula
+    success = safe_git_push_submodule("urunlerim", repo_url, max_retries=2)
+    if not success:
+        print("❌ Submodule push tekrar denemelerinde başarısız. Detayları loglarda kontrol et.")
+    else:
         print("🚀 Submodule push tamamlandı.")
 
-    except Exception as e:
-        print(f"❌ Submodule Git işlemi başarısız: {e}")
+# ---------------------------
+# Site üretimi ve ana repo push
+# ---------------------------
 
 def generate_site(products):
     for product in products:
         process_product(product)
+
     update_category_page()
 
     try:
-        subprocess.run(["git", "config", "user.name", "github-actions"], check=True)
-        subprocess.run(["git", "config", "user.email", "actions@github.com"], check=True)
-        subprocess.run(["git", "add", "urunlerim"], check=True)
+        run(["git", "config", "user.name", "github-actions"])
+        run(["git", "config", "user.email", "actions@github.com"])
+        run(["git", "add", "urunlerim"], check=False)
 
         has_changes = subprocess.call(["git", "diff", "--cached", "--quiet"]) != 0
 
         if has_changes:
-            subprocess.run(["git", "commit", "-m", "Submodule güncellendi"], check=True)
-
+            run(["git", "commit", "-m", "Submodule güncellendi"])
             gh_token = os.getenv("GH_TOKEN")
             if gh_token:
                 repo_url = f"https://{gh_token}@github.com/anticomm/indirimsinyali.git"
-                subprocess.run(["git", "push", repo_url, "HEAD:master"], check=True)
-                print("🚀 Ana repo push tamamlandı.")
-            else:
-                print("⚠️ GH_TOKEN tanımlı değil. Ana repo push atlanıyor.")
-        else:
-            print("⚠️ Ana repo için commit edilecek değişiklik yok.")
-    except Exception as e:
-        print(f"❌ Ana repo Git işlemi başarısız: {e}")
+                print("🔐 GH_TOKEN bulundu, ana repo push yapılıyor...")
+                run(["git", "push",]()
