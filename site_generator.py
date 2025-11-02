@@ -111,7 +111,7 @@ def update_category_page():
         print(f"❌ Kategori sayfası hatası: {e}")
 
 # =====================================================
-# 🔹 ÜRÜN SAYFASI OLUŞTURMA VE PUSH
+# 🔹 ÜRÜN SAYFASI OLUŞTURMA
 # =====================================================
 def generate_html(product):
     try:
@@ -147,31 +147,58 @@ def generate_html(product):
         date=date
     )
     return html, slug
-
-def process_product(product):
-    html, slug = generate_html(product)
-    if not html.strip():
-        print(f"❌ HTML boş: {slug}")
-        return
-    kategori_path = os.path.join("urunlerim", "Elektronik")
-    os.makedirs(kategori_path, exist_ok=True)
-    filename = f"{slug}.html"
-    path = os.path.join(kategori_path, filename)
-    relative_path = os.path.join("Elektronik", filename)
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(html)
-        os.utime(path, None)
-        print(f"✅ Ürün sayfası oluşturuldu: {path}")
+            subprocess.run(["git", "-C", "urunlerim", "add", relative_path], check=True)
+        has_changes = subprocess.call(["git", "-C", "urunlerim", "diff", "--cached", "--quiet"]) != 0
+        if has_changes:
+            subprocess.run(["git", "-C", "urunlerim", "commit", "-m", f"{slug} ürünü eklendi"], check=True)
+            subprocess.run(["git", "-C", "urunlerim", "push", repo_url, "main", "--force-with-lease"], check=False)
+            print("🚀 Submodule push tamamlandı.")
+        else:
+            print("⚠️ Submodule için commit edilecek değişiklik yok.")
     except Exception as e:
-        print(f"❌ HTML sayfası oluşturulamadı: {e}")
+        print(f"❌ Submodule Git işlemi başarısız: {e}")
         return
-    submodule_token = os.getenv("SUBMODULE_TOKEN")
-    repo_url = f"https://{submodule_token}@github.com/anticomm/urunlerim.git" if submodule_token else "https://github.com/anticomm/urunlerim.git"
+
+    # 🔁 lens repo’su submodule referansını güncellesin
     try:
-        subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "fetch", "origin"], check=False)
-        subprocess.run(["git", "-C", "urunlerim", "checkout", "-B", "main", "origin/main"], check=False)
-        subprocess.run(["git", "-C", "urunlerim", "pull", "--rebase"], check=False)
-        subprocess.run(["git", "-C", "urunlerim", "add", relative_path
+        subprocess.run(["git", "add", "urunlerim"], check=True)
+        has_submodule_change = subprocess.call(["git", "diff", "--cached", "--quiet"]) != 0
+        if has_submodule_change:
+            subprocess.run(["git", "commit", "-m", f"{slug} submodule referansı güncellendi"], check=True)
+            subprocess.run(["git", "push", "origin", "master"], check=True)
+            print("🔁 Ana repo submodule referansı güncellendi.")
+        else:
+            print("⚠️ Ana repo için submodule değişikliği yok.")
+    except Exception as e:
+        print(f"❌ Ana repo submodule güncelleme hatası: {e}")
+
+# =====================================================
+# 🔹 ANA İŞLEV
+# =====================================================
+def generate_site(products):
+    ensure_clean_submodule()  # ✅ önce submodule sağlam mı kontrol et
+
+    for product in products:
+        process_product(product)
+    update_category_page()
+
+    try:
+        subprocess.run(["git", "config", "user.name", "github-actions"], check=True)
+        subprocess.run(["git", "config", "user.email", "actions@github.com"], check=True)
+        subprocess.run(["git", "add", "urunlerim"], check=True)
+
+        has_changes = subprocess.call(["git", "diff", "--cached", "--quiet"]) != 0
+
+        if has_changes:
+            subprocess.run(["git", "commit", "-m", "Submodule güncellendi"], check=True)
+            gh_token = os.getenv("GH_TOKEN")
+            if gh_token:
+                repo_url = f"https://{gh_token}@github.com/anticomm/lens.git"
+                subprocess.run(["git", "push", repo_url, "HEAD:master"], check=True)
+                print("🚀 Ana repo push tamamlandı.")
+            else:
+                print("⚠️ GH_TOKEN tanımlı değil. Ana repo push atlanıyor.")
+        else:
+            print("⚠️ Ana repo için commit edilecek değişiklik yok.")
+    except Exception as e:
+        print(f"❌ Ana repo Git işlemi başarısız: {e}")
