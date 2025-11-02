@@ -110,9 +110,6 @@ def update_category_page():
     except Exception as e:
         print(f"❌ Kategori sayfası hatası: {e}")
 
-# =====================================================
-# 🔹 ÜRÜN SAYFASI OLUŞTURMA
-# =====================================================
 def generate_html(product):
     try:
         with open("template.html", "r", encoding="utf-8") as f:
@@ -147,7 +144,40 @@ def generate_html(product):
         date=date
     )
     return html, slug
-            subprocess.run(["git", "-C", "urunlerim", "add", relative_path], check=True)
+# =====================================================
+# 🔹 ÜRÜNÜ İŞLE VE PUSH ET
+# =====================================================
+def process_product(product):
+    html, slug = generate_html(product)
+    if not html.strip():
+        print(f"❌ HTML boş: {slug}")
+        return
+
+    kategori_path = os.path.join("urunlerim", "Elektronik")
+    os.makedirs(kategori_path, exist_ok=True)
+    filename = f"{slug}.html"
+    path = os.path.join(kategori_path, filename)
+    relative_path = os.path.join("Elektronik", filename)
+
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(html)
+        os.utime(path, None)
+        print(f"✅ Ürün sayfası oluşturuldu: {path}")
+    except Exception as e:
+        print(f"❌ HTML sayfası oluşturulamadı: {e}")
+        return
+
+    submodule_token = os.getenv("SUBMODULE_TOKEN")
+    repo_url = f"https://{submodule_token}@github.com/anticomm/urunlerim.git" if submodule_token else "https://github.com/anticomm/urunlerim.git"
+
+    try:
+        subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
+        subprocess.run(["git", "-C", "urunlerim", "fetch", "origin"], check=False)
+        subprocess.run(["git", "-C", "urunlerim", "checkout", "-B", "main", "origin/main"], check=False)
+        subprocess.run(["git", "-C", "urunlerim", "pull", "--rebase"], check=False)
+        subprocess.run(["git", "-C", "urunlerim", "add", relative_path], check=True)
         has_changes = subprocess.call(["git", "-C", "urunlerim", "diff", "--cached", "--quiet"]) != 0
         if has_changes:
             subprocess.run(["git", "-C", "urunlerim", "commit", "-m", f"{slug} ürünü eklendi"], check=True)
@@ -159,7 +189,6 @@ def generate_html(product):
         print(f"❌ Submodule Git işlemi başarısız: {e}")
         return
 
-    # 🔁 lens repo’su submodule referansını güncellesin
     try:
         subprocess.run(["git", "add", "urunlerim"], check=True)
         has_submodule_change = subprocess.call(["git", "diff", "--cached", "--quiet"]) != 0
