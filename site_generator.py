@@ -169,7 +169,7 @@ def process_product(product):
         return
 
     submodule_token = os.getenv("SUBMODULE_TOKEN")
-    repo_url = f"https://{submodule_token}@github.com/anticomm/urunlerim.git" if submodule_token else "https://github.com/anticomm/urunlerim.git"
+    repo_url = "https://github-actions:${{ secrets.SUBMODULE_TOKEN }}@github.com/anticomm/urunlerim.git"
 
     try:
         subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
