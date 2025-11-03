@@ -3,43 +3,7 @@ import subprocess
 import requests
 import json
 from bs4 import BeautifulSoup
-import shutil
 
-# =====================================================
-# 🔹 SUBMODULE SELF-HEALING MEKANİZMASI
-# =====================================================
-def ensure_clean_submodule():
-    print("🔍 Submodule bütünlüğü kontrol ediliyor...")
-    try:
-        result = subprocess.run(
-            ["git", "submodule", "update", "--init", "--recursive"],
-            check=False, capture_output=True, text=True
-        )
-        if (
-            "not our ref" in result.stderr
-            or "Direct fetching of that commit failed" in result.stderr
-        ):
-            print("⚠️ Submodule bozuk. Yeniden oluşturuluyor...")
-            subprocess.run(["git", "rm", "-f", "urunlerim"], check=False)
-            shutil.rmtree(".git/modules/urunlerim", ignore_errors=True)
-            shutil.rmtree("urunlerim", ignore_errors=True)
-            subprocess.run(
-                ["git", "submodule", "add", "https://github.com/anticomm/urunlerim.git", "urunlerim"],
-                check=True
-            )
-            subprocess.run(["git", "submodule", "update", "--init", "--recursive"], check=True)
-            subprocess.run(["git", "add", ".gitmodules", "urunlerim"], check=False)
-            subprocess.run(["git", "commit", "-m", "Submodule otomatik olarak yeniden eklendi"], check=False)
-            subprocess.run(["git", "push", "origin", "master"], check=False)
-            print("✅ Submodule başarıyla yeniden kuruldu.")
-        else:
-            print("✅ Submodule sağlam, devam ediliyor.")
-    except Exception as e:
-        print(f"❌ Submodule kontrolü sırasında hata oluştu: {e}")
-
-# =====================================================
-# 🔹 AMAZON VERİ ÇEKME
-# =====================================================
 def get_amazon_data(asin):
     url = f"https://www.amazon.com.tr/dp/{asin}"
     headers = {
@@ -55,36 +19,61 @@ def get_amazon_data(asin):
         img_tag = soup.find("img", {"id": "landingImage"})
         if img_tag and img_tag.get("src"):
             img_url = img_tag["src"]
-        elif soup.find("img", {"data-a-dynamic-image": True}):
-            raw = soup.find("img", {"data-a-dynamic-image": True})["data-a-dynamic-image"]
-            urls = list(json.loads(raw).keys())
-            if urls:
-                img_url = urls[0]
-        elif soup.select_one("img[src*='images-na.ssl-images-amazon.com']"):
-            img_url = soup.select_one("img[src*='images-na.ssl-images-amazon.com']")["src"]
-        elif soup.find("img", {"data-old-hires": True}):
-            img_url = soup.find("img", {"data-old-hires": True})["data-old-hires"]
         return title, img_url
     except Exception as e:
         print(f"❌ Amazon verisi alınamadı: {asin} → {e}")
         return asin, ""
 
-# =====================================================
-# 🔹 HTML OLUŞTURMA VE KATEGORİ SAYFASI
-# =====================================================
 def shorten_url(url):
     return url
 
-def update_category_page():
+def generate_html(product):
     try:
-        kategori_path = os.path.join("urunlerim", "Elektronik")
-        os.makedirs(kategori_path, exist_ok=True)
-        html_dosyalar = [f for f in os.listdir(kategori_path) if f.endswith(".html") and f != "index.html"]
-        liste = ""
-        for dosya in sorted(html_dosyalar):
-            slug = dosya.replace(".html", "")
-            liste += f'<li><a href="{dosya}">{slug.replace("-", " ").title()}</a></li>\n'
-        html = f"""<!DOCTYPE html>
+        with open("template.html", "r", encoding="utf-8") as f:
+            template = f.read()
+    except FileNotFoundError:
+        print("❌ template.html dosyası bulunamadı.")
+        return "", product.get("slug", "urun")
+
+    slug = product.get("slug", "urun")
+    title = product.get("title", "Ürün")
+    price = product.get("price", "")
+    old_price = product.get("old_price", "")
+    rating = product.get("rating", "")
+    specs = product.get("specs", [])
+    image = product.get("image", "")
+    link = shorten_url(product.get("amazon_link", "#"))
+    date = product.get("date", "2025-10-24")
+
+    specs_html = "".join([f"<li>{spec}</li>" for spec in specs])
+    fiyat_html = (
+        f"<p><del>{old_price}</del> → <strong>{price}</strong></p>"
+        if old_price and old_price != price
+        else f"<p><strong>{price}</strong></p>"
+    )
+
+    html = template.format(
+        title=title,
+        image=image,
+        price_html=fiyat_html,
+        specs_html=specs_html,
+        rating=rating,
+        link=link,
+        asin=slug,
+        date=date
+    )
+    return html, slug
+
+def update_category_page():
+    kategori_path = os.path.join("urunlerim", "Elektronik")
+    os.makedirs(kategori_path, exist_ok=True)
+    html_dosyalar = [f for f in os.listdir(kategori_path) if f.endswith(".html") and f != "index.html"]
+    liste = ""
+    for dosya in sorted(html_dosyalar):
+        slug = dosya.replace(".html", "")
+        liste += f'<li><a href="{dosya}">{slug.replace("-", " ").title()}</a></li>\n'
+
+    html = f"""<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -104,49 +93,11 @@ def update_category_page():
 </div>
 </body>
 </html>"""
-        with open(os.path.join(kategori_path, "index.html"), "w", encoding="utf-8") as f:
-            f.write(html)
-        print("✅ Elektronik kategori sayfası güncellendi.")
-    except Exception as e:
-        print(f"❌ Kategori sayfası hatası: {e}")
 
-def generate_html(product):
-    try:
-        with open("template.html", "r", encoding="utf-8") as f:
-            template = f.read()
-    except FileNotFoundError:
-        print("❌ template.html dosyası bulunamadı. HTML oluşturulamadı.")
-        return "", product.get("slug", "urun")
-    slug = product.get("slug", "urun")
-    title = product.get("title", "Ürün")
-    price = product.get("price", "")
-    old_price = product.get("old_price", "")
-    rating = product.get("rating", "")
-    specs = product.get("specs", [])
-    image = product.get("image", "")
-    link = shorten_url(product.get("amazon_link", "#"))
-    asin = slug
-    date = product.get("date", "2025-10-24")
-    specs_html = "".join([f"<li>{spec}</li>" for spec in specs])
-    fiyat_html = (
-        f"<p><del>{old_price}</del> → <strong>{price}</strong></p>"
-        if old_price and old_price != price
-        else f"<p><strong>{price}</strong></p>"
-    )
-    html = template.format(
-        title=title,
-        image=image,
-        price_html=fiyat_html,
-        specs_html=specs_html,
-        rating=rating,
-        link=link,
-        asin=asin,
-        date=date
-    )
-    return html, slug
-# =====================================================
-# 🔹 ÜRÜNÜ İŞLE VE PUSH ET
-# =====================================================
+    with open(os.path.join(kategori_path, "index.html"), "w", encoding="utf-8") as f:
+        f.write(html)
+    print("✅ Elektronik kategori sayfası güncellendi.")
+
 def process_product(product):
     html, slug = generate_html(product)
     if not html.strip():
@@ -159,75 +110,29 @@ def process_product(product):
     path = os.path.join(kategori_path, filename)
     relative_path = os.path.join("Elektronik", filename)
 
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(html)
-        os.utime(path, None)
-        print(f"✅ Ürün sayfası oluşturuldu: {path}")
-    except Exception as e:
-        print(f"❌ HTML sayfası oluşturulamadı: {e}")
-        return
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(html)
+    os.utime(path, None)
+    print(f"✅ Ürün sayfası oluşturuldu: {path}")
 
-    submodule_token = os.getenv("SUBMODULE_TOKEN")
-    repo_url = "https://github-actions:${{ secrets.SUBMODULE_TOKEN }}@github.com/anticomm/urunlerim.git"
+    token = os.getenv("GH_TOKEN")
+    repo_url = f"https://{token}@github.com/anticomm/urunlerim.git"
 
-    try:
-        subprocess.run(["git", "-C", "urunlerim", "config", "user.name", "github-actions"], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "config", "user.email", "actions@github.com"], check=True)
-        subprocess.run(["git", "-C", "urunlerim", "fetch", "origin"], check=False)
-        subprocess.run(["git", "-C", "urunlerim", "checkout", "-B", "main", "origin/main"], check=False)
-        subprocess.run(["git", "-C", "urunlerim", "pull", "--rebase"], check=False)
-        subprocess.run(["git", "-C", "urunlerim", "add", relative_path], check=True)
-        has_changes = subprocess.call(["git", "-C", "urunlerim", "diff", "--cached", "--quiet"]) != 0
-        if has_changes:
-            subprocess.run(["git", "-C", "urunlerim", "commit", "-m", f"{slug} ürünü eklendi"], check=True)
-            subprocess.run(["git", "-C", "urunlerim", "push", repo_url, "main", "--force-with-lease"], check=False)
-            print("🚀 Submodule push tamamlandı.")
-        else:
-            print("⚠️ Submodule için commit edilecek değişiklik yok.")
-    except Exception as e:
-        print(f"❌ Submodule Git işlemi başarısız: {e}")
-        return
+    subprocess.run(["git", "config", "--global", "user.name", "github-actions"], check=True)
+    subprocess.run(["git", "config", "--global", "user.email", "actions@github.com"], check=True)
 
-    try:
-        subprocess.run(["git", "add", "urunlerim"], check=True)
-        has_submodule_change = subprocess.call(["git", "diff", "--cached", "--quiet"]) != 0
-        if has_submodule_change:
-            subprocess.run(["git", "commit", "-m", f"{slug} submodule referansı güncellendi"], check=True)
-            subprocess.run(["git", "push", "origin", "master"], check=True)
-            print("🔁 Ana repo submodule referansı güncellendi.")
-        else:
-            print("⚠️ Ana repo için submodule değişikliği yok.")
-    except Exception as e:
-        print(f"❌ Ana repo submodule güncelleme hatası: {e}")
+    subprocess.run(["git", "pull", "--rebase"], cwd="urunlerim", check=True)
+    subprocess.run(["git", "add", relative_path], cwd="urunlerim", check=True)
 
-# =====================================================
-# 🔹 ANA İŞLEV
-# =====================================================
+    has_changes = subprocess.call(["git", "diff", "--cached", "--quiet"], cwd="urunlerim") != 0
+    if has_changes:
+        subprocess.run(["git", "commit", "-m", f"{slug} ürünü eklendi"], cwd="urunlerim", check=True)
+        subprocess.run(["git", "push", repo_url, "main", "--force-with-lease"], cwd="urunlerim", check=True)
+        print("🚀 Ürünlerim repo push tamamlandı.")
+    else:
+        print("⚠️ Commit edilecek değişiklik yok.")
+
 def generate_site(products):
-    ensure_clean_submodule()  # ✅ önce submodule sağlam mı kontrol et
-
     for product in products:
         process_product(product)
     update_category_page()
-
-    try:
-        subprocess.run(["git", "config", "user.name", "github-actions"], check=True)
-        subprocess.run(["git", "config", "user.email", "actions@github.com"], check=True)
-        subprocess.run(["git", "add", "urunlerim"], check=True)
-
-        has_changes = subprocess.call(["git", "diff", "--cached", "--quiet"]) != 0
-
-        if has_changes:
-            subprocess.run(["git", "commit", "-m", "Submodule güncellendi"], check=True)
-            gh_token = os.getenv("GH_TOKEN")
-            if gh_token:
-                repo_url = f"https://{gh_token}@github.com/anticomm/lens.git"
-                subprocess.run(["git", "push", repo_url, "HEAD:master"], check=True)
-                print("🚀 Ana repo push tamamlandı.")
-            else:
-                print("⚠️ GH_TOKEN tanımlı değil. Ana repo push atlanıyor.")
-        else:
-            print("⚠️ Ana repo için commit edilecek değişiklik yok.")
-    except Exception as e:
-        print(f"❌ Ana repo Git işlemi başarısız: {e}")
