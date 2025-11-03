@@ -21,6 +21,9 @@ jobs:
       CSE_ID: ${{ secrets.CSE_ID }}
       COOKIE2_B64: ${{ secrets.COOKIE2_B64 }}
     steps: 
+      - name: Reposu checkout edilsin
+        uses: actions/checkout@v4
+
       - name: urunlerim repo'sunu klonla
         run: |
           git clone https://github.com/anticomm/urunlerim.git
