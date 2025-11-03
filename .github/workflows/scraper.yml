@@ -63,7 +63,7 @@ jobs:
           git config --global user.email "actions@github.com"
           git add send_products.txt
           git commit -m "Scraper A → Fiyat güncellemesi" || echo "⏩ Değişiklik yok"
-          git pull origin master --rebase || echo "⏩ Pull başarısız, devam ediliyor"
+          git pull origin main --rebase --autostash || echo "⏩ Pull başarısız, devam ediliyor"
           git push || echo "⏩ Push başarısız ama zincir devam ediyor"
 
       - name: 30 saniye bekle
@@ -86,5 +86,5 @@ jobs:
           git commit -m "📦 Yeni ürünler eklendi" || echo "⏩ Commit edilecek değişiklik yok"
 
           # 2. Pull → rebase → push
-          git pull origin main --rebase || echo "⏩ Pull başarısız, devam ediliyor"
+          git pull --rebase --autostash || echo "⏩ Pull başarısız, devam ediliyor"
           git push https://${{ secrets.GH_TOKEN }}@github.com/anticomm/urunlerim.git main --force-with-lease || echo "⏩ Push başarısız ama zincir devam ediyor"
