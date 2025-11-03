@@ -80,7 +80,11 @@ jobs:
           cd urunlerim
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git pull origin main --rebase || echo "⏩ Pull başarısız, devam ediliyor"
+
+          # 1. Pull önce değil, sonra yapılmalı
           git add Elektronik/*.html Elektronik/index.html || echo "⏩ HTML dosyası yok"
           git commit -m "📦 Yeni ürünler eklendi" || echo "⏩ Commit edilecek değişiklik yok"
-          git push https://${{ secrets.SUBMODULE_TOKEN }}@github.com/anticomm/urunlerim.git main --force-with-lease
+
+          # 2. Pull → rebase → push
+          git pull origin main --rebase || echo "⏩ Pull başarısız, devam ediliyor"
+          git push https://${{ secrets.GH_TOKEN }}@github.com/anticomm/urunlerim.git main --force-with-lease || echo "⏩ Push başarısız ama zincir devam ediyor"
