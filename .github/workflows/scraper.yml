@@ -89,4 +89,4 @@ jobs:
 
           # 2. Pull → rebase → push
           git pull --rebase --autostash || echo "⏩ Pull başarısız, devam ediliyor"
-          git push https://${{ secrets.GH_TOKEN }}@github.com/anticomm/urunlerim.git main --force-with-lease || echo "⏩ Push başarısız ama zincir devam ediyor"
+          git push https://$TOKEN@github.com/anticomm/urunlerim.git main --force-with-lease || echo "⏩ Push başarısız ama zincir devam ediyor"
