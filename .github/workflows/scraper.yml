@@ -83,4 +83,4 @@ jobs:
           git pull origin main --rebase || echo "⏩ Pull başarısız, devam ediliyor"
           git add Elektronik/*.html Elektronik/index.html || echo "⏩ HTML dosyası yok"
           git commit -m "📦 Yeni ürünler eklendi" || echo "⏩ Commit edilecek değişiklik yok"
-          git push https://github-actions:${{ secrets.SUBMODULE_TOKEN }}@github.com/anticomm/urunlerim.git main --force-with-lease || echo "⏩ Push başarısız ama zincir devam ediyor"
+          git push https://${{ secrets.SUBMODULE_TOKEN }}@github.com/anticomm/urunlerim.git main --force-with-lease
