@@ -11,11 +11,38 @@
       background-color: #ffffff;
       color: #333;
     }}
-    .entry-title {{ color: #ff6600; font-size: 28px; margin: 20px 0; }}
-    .fiyat {{ font-size: 22px; color: #d32f2f; font-weight: bold; }}
-    .guncel {{ font-size: 14px; color: #888; }}
+    .navbar {{
+      background-color: #ff6600;
+      padding: 15px;
+    }}
+    .navbar ul {{
+      list-style: none;
+      margin: 0;
+      padding: 0 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+    }}
+    .navbar a {{
+      font-size: 16px;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 8px 12px;
+    }}
+    .entry-title {{ color: #ff6600; font-size: 28px; margin: 20px 0; text-align: center; }}
+    .post-thumbnail img {{
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: auto;
+    }}
+    .fiyat {{ font-size: 22px; color: #d32f2f; font-weight: bold; text-align: center; display: block; }}
+    .guncel {{ font-size: 14px; color: #888; text-align: center; display: block; }}
     .btn {{
-      display: inline-block;
+      display: block;
       background-color: #e67e22;
       color: white;
       padding: 12px 20px;
@@ -23,83 +50,91 @@
       border-radius: 5px;
       font-size: 20px;
       font-weight: bold;
+      text-align: center;
+      margin: 20px auto;
+      width: fit-content;
     }}
+    .telegram {{ text-align: center; margin: 10px 0; }}
     .telegram a {{ color: #0077cc; text-decoration: none; font-weight: bold; }}
-    .mobil-uyari {{ font-size: 14px; color: #999; }}
-    .site-description {{ text-align: center; font-size: 16px; margin: 10px 0; }}
-    .widget-area {{ padding: 20px; text-align: center; }}
-    .widget input {{ padding: 8px; width: 60%; max-width: 300px; }}
-    .widget button {{ padding: 8px 12px; }}
+    .mobil-uyari {{ font-size: 14px; color: #999; text-align: center; display: block; }}
+    footer {{
+      background-color: #f9f9f9;
+      padding: 30px;
+      margin-top: 40px;
+      border-top: 1px solid #ddd;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #333;
+      text-align: center;
+    }}
+    .copyright {{
+      text-align: center;
+      font-size: 13px;
+      color: #666;
+      padding: 15px 0;
+      background-color: #f2f2f2;
+      border-top: 1px solid #ddd;
+    }}
   </style>
 </head>
 <body>
-  <div id="page" class="site">
-    <header id="masthead" class="site-header">
-      <div class="container">
-        <div class="site-branding reklam-alani">
-          <!-- Google AdSense -->
-          <ins class="adsbygoogle" style="display: block;" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="YYYYYYYYYY" data-ad-format="auto" data-full-width-responsive="true"></ins>
-        </div>
-        <p class="site-description">Popüler ürünleri takip eder, en iyi zamanı seçmenize yardımcı olur.</p>
-      </div>
+  <!-- Navigasyon Bar -->
+  <header class="navbar">
+    <nav>
+      <ul>
+        <li><a href="/">Anasayfa</a></li>
+        <li><a href="/Elektronik">Elektronik</a></li>
+        <li><a href="/Giyim">Giyim</a></li>
+        <li><a href="#hakkimizda">Hakkımızda</a></li>
+        <li><a href="#iletisim">İletişim</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Ürün İçeriği -->
+  <article class="product-entry">
+    <header class="entry-header">
+      <h1 class="entry-title">{title}</h1>
     </header>
 
-    <article class="product-entry">
-      <header class="entry-header">
-        <h1 class="entry-title">{title}</h1>
-      </header>
+    <figure class="post-thumbnail">
+      <img src="{image}" alt="{title}" />
+    </figure>
 
-      <figure class="post-thumbnail">
-        <img src="{image}" alt="{title}" width="838" height="471" />
-      </figure>
-
-      <div class="entry-content">
-        <span class="fiyat">{price_html}</span>
-        <span class="guncel">↻ {date} tarihinde güncellendi.</span>
-        <br /><br />
-        <span class="telegram">
-          <a href="https://t.me/amazonindirimler1" target="_blank">📲 Bu ürün indirime girdiğinde Telegram’dan bildirim alın!</a>
-        </span>
-        <br /><br />
-        <a id="buton" class="btn" href="{link}" target="_blank">Fırsata Git</a>
-        <br /><br />
-        <span class="mobil-uyari">📢 İlgili ürün için fırsata git bağlantısına tıklayın.</span>
+    <div class="entry-content">
+      <span class="fiyat">{price_html}</span>
+      <span class="guncel">↻ {date} tarihinde güncellendi.</span>
+      <div class="telegram">
+        <a href="https://t.me/amazonindirimler1" target="_blank">📲 Bu ürün indirime girdiğinde Telegram’dan bildirim alın!</a>
       </div>
-    </article>
+      <a class="btn" href="{link}" target="_blank">Fırsata Git</a>
+      <span class="mobil-uyari">📢 İlgili ürün için fırsata git bağlantısına tıklayın.</span>
+    </div>
+  </article>
 
-    <aside id="secondary" class="widget-area">
-      <section class="widget widget_search">
-        <form action="ara.php" method="get">
-          <label for="search">Ürün Ara</label>
-          <input id="search" name="s" required type="search" placeholder="Ürün adı girin..." />
-          <button type="submit">Ara</button>
-        </form>
-      </section>
-    </aside>
+  <!-- Footer -->
+  <footer>
+    <section id="hakkimizda">
+      <h2>Hakkımızda</h2>
+      <p>
+        İndirim Sinyali, indirimli ürünleri anlık olarak takip eden bir bildirim sistemidir.
+        Ürün sayfaları otomatik olarak güncellenir ve her kategori için ayrı bağlantılar sunar.
+        Telegram kanalımız üzerinden en güncel fırsatları doğrudan alabilir, ürün detaylarına tek tıkla ulaşabilirsiniz.
+        Sistemimiz tamamen ücretsizdir ve kullanıcı odaklıdır.
+      </p>
+    </section>
 
-    <footer class="entry-footer">
-      <section id="hakkimizda">
-        <h2>Hakkımızda</h2>
-        <p>
-          İndirim Sinyali, indirimli ürünleri anlık olarak takip eden bir bildirim sistemidir.
-          Ürün sayfaları otomatik olarak güncellenir ve her kategori için ayrı bağlantılar sunar.
-          Telegram kanalımız üzerinden en güncel fırsatları doğrudan alabilir, ürün detaylarına tek tıkla ulaşabilirsiniz.
-          Sistemimiz tamamen ücretsizdir ve kullanıcı odaklıdır.
-        </p>
-      </section>
+    <section id="iletisim">
+      <h2>İletişim</h2>
+      <p>
+        Telegram kanalımız: <a href="https://t.me/amazonindirimler1" target="_blank">@amazonindirimler1</a><br />
+        E-posta: <a href="mailto:destek@indirimsinyali.com">destek@indirimsinyali.com</a>
+      </p>
+    </section>
+  </footer>
 
-      <section id="iletisim">
-        <h2>İletişim</h2>
-        <p>
-          Telegram kanalımız: <a href="https://t.me/amazonindirimler1" target="_blank">@amazonindirimler1</a><br />
-          E-posta: <a href="mailto:destek@indirimsinyali.com">destek@indirimsinyali.com</a>
-        </p>
-      </section>
-
-      <div class="copyright">
-        © 2025 İndirimsinyali - Tüm hakları saklıdır.
-      </div>
-    </footer>
+  <div class="copyright">
+    © 2025 İndirimsinyali - Tüm hakları saklıdır.
   </div>
 </body>
 </html>
