@@ -5,7 +5,6 @@ import json
 import time
 import base64
 import re
-import subprocess
 import site_generator as site
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -143,22 +142,6 @@ def save_sent_data(updated_data):
         for asin, price in updated_data.items():
             f.write(f"{asin} | {price}\n")
 
-def push_html_to_repo():
-    try:
-        os.chdir("urunlerim")
-
-        subprocess.run(["git", "config", "--global", "user.name", "github-actions"], check=True)
-        subprocess.run(["git", "config", "--global", "user.email", "actions@github.com"], check=True)
-        subprocess.run(["git", "add", "Elektronik/*.html", "Elektronik/index.html"], check=True)
-
-        # ⏩ Commit edilecek dosya yoksa hata vermesin
-        subprocess.run(["git", "commit", "-m", "📦 Yeni ürünler eklendi"], check=False)
-
-        subprocess.run(["git", "pull", "origin", "main", "--rebase", "--autostash"], check=True)
-        subprocess.run(["git", "push", "origin", "main", "--force-with-lease"], check=True)
-        print("🚀 Ürünlerim repo push tamamlandı.")
-    except Exception as e:
-        print(f"❌ Push hatası: {e}")
 
 def run():
     check_timeout()
@@ -279,7 +262,6 @@ def run():
     if products_to_send:
         site.generate_site(products_to_send)
         print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
-        push_html_to_repo()  # ✅ HTML dosyaları oluşturulduktan hemen sonra pushla
         
         for p in products_to_send:
             send_message(p)
