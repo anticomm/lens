@@ -83,10 +83,10 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
-          # 1. Pull önce değil, sonra yapılmalı
+          git remote set-url origin https://$TOKEN@github.com/anticomm/urunlerim.git
+
           git add Elektronik/*.html Elektronik/index.html || echo "⏩ HTML dosyası yok"
           git commit -m "📦 Yeni ürünler eklendi" || echo "⏩ Commit edilecek değişiklik yok"
 
-          # 2. Pull → rebase → push
-          git pull --rebase --autostash || echo "⏩ Pull başarısız, devam ediliyor"
-          git push https://$TOKEN@github.com/anticomm/urunlerim.git main --force-with-lease || echo "⏩ Push başarısız ama zincir devam ediyor"
+          git pull origin main --rebase --autostash || echo "⏩ Pull başarısız, devam ediliyor"
+          git push origin main --force-with-lease || echo "⏩ Push başarısız ama zincir devam ediyor"
