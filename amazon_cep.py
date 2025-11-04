@@ -145,12 +145,15 @@ def save_sent_data(updated_data):
 
 def push_html_to_repo():
     try:
-        os.chdir("urunlerim")  # ✅ urunlerim klasörüne geç
+        os.chdir("urunlerim")
 
         subprocess.run(["git", "config", "--global", "user.name", "github-actions"], check=True)
         subprocess.run(["git", "config", "--global", "user.email", "actions@github.com"], check=True)
         subprocess.run(["git", "add", "Elektronik/*.html", "Elektronik/index.html"], check=True)
-        subprocess.run(["git", "commit", "-m", "📦 Yeni ürünler eklendi"], check=True)
+
+        # ⏩ Commit edilecek dosya yoksa hata vermesin
+        subprocess.run(["git", "commit", "-m", "📦 Yeni ürünler eklendi"], check=False)
+
         subprocess.run(["git", "pull", "origin", "main", "--rebase", "--autostash"], check=True)
         subprocess.run(["git", "push", "origin", "main", "--force-with-lease"], check=True)
         print("🚀 Ürünlerim repo push tamamlandı.")
