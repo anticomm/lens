@@ -2,32 +2,34 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>{{ürün_adı}}</title>
+  <title>İndirim Sinyali</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
-    .price { font-size: 1.5em; color: #d32f2f; }
-    .update, .shipping, .notify { font-size: 0.9em; color: #555; }
-    .deal-button { display: inline-block; margin: 10px 0; padding: 10px 15px; background: #1976d2; color: white; text-decoration: none; border-radius: 5px; }
-    ul { padding-left: 20px; }
+    body {{ font-family: sans-serif; padding: 20px; max-width: 700px; margin: auto; }}
+    h1, h2 {{ color: #1976d2; }}
+    ul {{ list-style: none; padding: 0; }}
+    li {{ margin: 8px 0; }}
+    a {{ text-decoration: none; color: #d32f2f; }}
+    footer {{ margin-top: 40px; font-size: 0.9em; color: #555; }}
   </style>
 </head>
 <body>
-  <h1>İndirim sinyali</h1>
-  <p>Popüler e-ticaret sitelerini takip eder, satın almak için en iyi zamanı seçmenize yardımcı olur.</p>
+  <h1>İndirim Sinyali</h1>
+  <p>İndirimli ürünleri anlık olarak takip eden bir bildirim sistemidir. Ürün sayfaları otomatik olarak güncellenir ve her kategori için ayrı bağlantılar sunar.</p>
+  <p>Telegram kanalımız üzerinden en güncel fırsatları doğrudan alabilir, ürün detaylarına tek tıkla ulaşabilirsiniz. Sistemimiz tamamen ücretsizdir ve kullanıcı odaklıdır.</p>
 
-  <h2>{{ürün_adı}}</h2>
-  <p class="price">💰 {{fiyat}} TL</p>
-  <p class="update">↻ {{güncelleme_tarihi}}</p>
-  <p class="shipping">📦 {{kargo_bilgisi}}</p>
-  <p class="notify">📲 Bu ürün indirime girdiğinde {{bildirim_kanalı}}’dan bildirim alın!</p>
-  <a href="{{ürün_linki}}" class="deal-button">🔗 Ürüne Git</a>
-
-  <hr>
-
-  <h3>📋 Ürün Bilgisi</h3>
+  <h2>Kategoriler</h2>
   <ul>
-    <li>Satıcı: {{satıcı}}</li>
+    <li><a href="elektronik.html">Elektronik Ürünleri</a></li>
+    <li><a href="giyim.html">Giyim Ürünleri</a></li>
   </ul>
+
+  <h2>İletişim</h2>
+  <p>Telegram kanalımız: <a href="https://t.me/amazonindirimler1">@amazonindirimler1</a></p>
+  <p>E-posta: <a href="mailto:destek@indirimsinyali.com">destek@indirimsinyali.com</a></p>
+
+  <footer>
+    © 2025 İndirimsinyali - Tüm hakları saklıdır.
+  </footer>
 </body>
 </html>
