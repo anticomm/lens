@@ -75,18 +75,3 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             https://api.github.com/repos/anticomm/lens/actions/workflows/scraperb.yml/dispatches \
             -d '{"ref":"master"}' || echo "⚠️ Scraper B tetiklenemedi ama zincir devam ediyor"
-      - name: urunlerim repo'suna HTML pushla
-        env:
-          TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          cd urunlerim
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-
-          git remote set-url origin https://$TOKEN@github.com/anticomm/urunlerim.git
-
-          git add Elektronik/*.html Elektronik/index.html || echo "⏩ HTML dosyası yok"
-          git commit -m "📦 Yeni ürünler eklendi" || echo "⏩ Commit edilecek değişiklik yok"
-
-          git pull origin main --rebase --autostash || echo "⏩ Pull başarısız, devam ediliyor"
-          git push origin main --force-with-lease || echo "⏩ Push başarısız ama zincir devam ediyor"
