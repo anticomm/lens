@@ -3,103 +3,65 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{ürün_adı}</title>
-  <style>
-    /* Tüm CSS yukarıdaki ana sayfa stilinden alınmalı */
-    /* Sadece ürün içeriği için ek stil: */
-    .urun-kapsul {
-      padding: 40px;
-      max-width: 700px;
-      margin: auto;
-    }
-    .urun-kapsul h2 {
-      font-size: 28px;
-      color: #ff6600;
-      margin-bottom: 10px;
-    }
-    .urun-kapsul p {
-      font-size: 16px;
-      margin: 6px 0;
-    }
-    .deal-button {
-      display: inline-block;
-      margin: 15px 0;
-      padding: 10px 15px;
-      background: #1976d2;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-      font-weight: bold;
-    }
-  </style>
+  <title>{title}</title>
 </head>
 <body>
-  <!-- Navigasyon -->
-  <header class="navbar">
-    <nav>
-      <ul>
-        <li><a href="/">Anasayfa</a></li>
-        <li>
-          <div class="kategori-baslik" onclick="toggleKategoriler()">Kategoriler</div>
-          <ul class="kategori-listesi" id="kategoriListesi">
-            <li><a href="/Elektronik"><span class="icon">💻</span> Elektronik</a></li>
-            <li><a href="/Giyim"><span class="icon">👕</span> Giyim</a></li>
-          </ul>
-        </li>
-        <li><a href="#hakkimizda">Hakkımızda</a></li>
-        <li><a href="#iletisim">İletişim</a></li>
-      </ul>
-    </nav>
-  </header>
-
-  <!-- Ürün İçeriği -->
-  <main class="urun-kapsul">
-    <h2>{ürün_adı}</h2>
-    <p>💰 {fiyat} TL</p>
-    <p>↻ {güncelleme_tarihi}</p>
-    <p>📦 {kargo_bilgisi}</p>
-    <p>📲 Bu ürün indirime girdiğinde {bildirim_kanalı}’dan bildirim alın!</p>
-    <a href="{ürün_linki}" class="deal-button">🔗 Ürüne Git</a>
-    <hr />
-    <h3>📋 Ürün Bilgisi</h3>
-    <ul>
-      <li>Satıcı: {satıcı}</li>
-    </ul>
-  </main>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <section id="hakkimizda">
-      <h2>Hakkımızda</h2>
-      <p>
-        İndirim Sinyali, indirimli ürünleri anlık olarak takip eden bir bildirim sistemidir.
-        Ürün sayfaları otomatik olarak güncellenir ve her kategori için ayrı bağlantılar sunar.
-        Telegram kanalımız üzerinden en güncel fırsatları doğrudan alabilir, ürün detaylarına tek tıkla ulaşabilirsiniz.
-        Sistemimiz tamamen ücretsizdir ve kullanıcı odaklıdır.
-      </p>
-    </section>
-
-    <section id="iletisim">
-      <h2>İletişim</h2>
-      <p>
-        Telegram kanalımız: <a href="https://t.me/amazonindirimler1" target="_blank">@amazonindirimler1</a><br />
-        E-posta: <a href="mailto:destek@indirimsinyali.com">destek@indirimsinyali.com</a>
-      </p>
-    </section>
-  </footer>
-
-  <div class="copyright">
-    © 2025 İndirimsinyali - Tüm hakları saklıdır.
+  <div id="page" class="site">
+    <header id="masthead" class="site-header">
+      <div class="container">
+        <div class="site-branding reklam-alani">
+          <!-- Google AdSense -->
+          <ins class="adsbygoogle" style="display: block;" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="YYYYYYYYYY" data-ad-format="auto" data-full-width-responsive="true"></ins>
+        </div>
+        <p class="site-description">Popüler ürünleri takip eder, en iyi zamanı seçmenize yardımcı olur.</p>
+      </div>
+    </header>
   </div>
 
-  <script>
-    function toggleKategoriler() {
-      const liste = document.getElementById("kategoriListesi");
-      liste.style.display = (liste.style.display === "block") ? "none" : "block";
-    }
-    window.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("kategoriListesi").style.display = "none";
-    });
-  </script>
+  <article class="product-entry">
+    <header class="entry-header">
+      <h1 class="entry-title">{title}</h1>
+    </header>
+
+    <figure class="post-thumbnail">
+      <img src="{image}" alt="{title}" width="838" height="471" />
+    </figure>
+
+    <div class="entry-content">
+      <span class="fiyat">{price_html}</span>
+      <span class="guncel" style="color: #8e8e8e; font-size: 14px;">↻ {date} tarihinde güncellendi.</span>
+      <br />
+      <span class="telegram">
+        <a href="https://t.me/amazonindirimler1" target="_blank">📲 Bu ürün indirime girdiğinde Telegram’dan bildirim alın!</a>
+        <br /><br />
+      </span>
+      <a id="buton" class="btn" style="color: #fff; background-color: #e67e22; text-decoration: none; font-size: 25px;" href="{link}" target="_blank">Fırsata Git</a>
+      <br /><br />
+      <span class="mobil-uyari" style="color: #b0b0b0;">📢 İlgili ürün için fırsata git bağlantısına tıklayın.</span>
+      <br /><br />
+    </div>
+
+    <div class="entry-content">&nbsp;</div>
+
+    <div class="site-branding reklam-alani">
+      <!-- Google AdSense -->
+      <ins class="adsbygoogle" style="display: block;" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="YYYYYYYYYY" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    </div>
+
+    <div class="entry-content">&nbsp;</div>
+    <footer class="entry-footer"></footer>
+  </article>
+
+  <aside id="secondary" class="widget-area">
+    <section class="widget widget_search">
+      <form action="ara.php" method="get">
+        <label for="search">Ürün Ara</label>
+        <input id="search" name="s" required="" type="search" placeholder="Ürün adı girin..." />
+        <button type="submit">Ara</button>
+      </form>
+    </section>
+  </aside>
+
+  <p>&nbsp;</p>
 </body>
 </html>
