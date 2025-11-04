@@ -259,18 +259,18 @@ def run():
             sent_data[asin] = price
 
     if products_to_send:
+        site.generate_site(products_to_send)
+        print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
+        
         for p in products_to_send:
             send_message(p)
             run_capture(p)
+        
         save_sent_data(sent_data)
         with open("send_products.txt", "w", encoding="utf-8") as f:
             for p in products_to_send:
                 f.write(f"{p['asin']} | {p['price']}\n")
 
-        site.generate_site(products_to_send)
-        print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
-
-        print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
     else:
         print("⚠️ Yeni veya indirimli ürün bulunamadı.")
 
