@@ -238,10 +238,9 @@ def run():
                 print(f"⚠️ Fiyat karşılaştırılamadı: {product['title']} → {old_price} → {price}")
                 sent_data[asin] = price
                 continue
-
+            product["old_price"] = old_price
             if new_val < old_val:
                 print(f"📉 Fiyat düştü: {product['title']} → {old_price} → {price}")
-                product["old_price"] = product.get("old_price", "")
                 product["rating"] = product.get("rating", "")
                 product["specs"] = product.get("specs", [])
                 product["amazon_link"] = product.get("link", "")
