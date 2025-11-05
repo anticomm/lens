@@ -243,23 +243,29 @@ def run():
                 sent_data[asin] = price
                 continue
             product["old_price"] = old_price
+            try:
+                old_val = float(old_price.replace("TL", "").replace(".", "").replace(",", ".").strip())
+                new_val = float(price.replace("TL", "").replace(".", "").replace(",", ".").strip())
+            except:
+                print(f"⚠️ Fiyat karşılaştırılamadı: {product['title']} → {old_price} → {price}")
+                sent_data[asin] = price
+                continue
+
             if new_val < old_val:
-                print(f"📉 Fiyat düştü: {product['title']} → {old_price} → {price}")
-                product["rating"] = product.get("rating", "")
-                product["specs"] = product.get("specs", [])
-                product["amazon_link"] = product.get("link", "")
-                products_to_send.append(product)
+                fark = old_val - new_val
+                oran = (fark / old_val) * 100
+                if oran >= 10:
+                    print(f"📉 %10+ indirim: {product['title']} → {old_price} → {price} (%{oran:.1f})")
+                    product["rating"] = product.get("rating", "")
+                    product["specs"] = product.get("specs", [])
+                    product["amazon_link"] = product.get("link", "")
+                    product["discount"] = f"{oran:.1f}"
+                    products_to_send.append(product)
+                else:
+                    print(f"⏩ İndirim <%10: {product['title']} → %{oran:.1f}")
             else:
                 print(f"⏩ Fiyat yükseldi veya aynı: {product['title']} → {old_price} → {price}")
-            sent_data[asin] = price
 
-        else:
-            print(f"🆕 Yeni ürün: {product['title']}")
-            product["old_price"] = product.get("old_price", "")
-            product["rating"] = product.get("rating", "")
-            product["specs"] = product.get("specs", [])
-            product["amazon_link"] = product.get("link", "")
-            products_to_send.append(product)
             sent_data[asin] = price
 
     if products_to_send:
