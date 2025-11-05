@@ -1,11 +1,18 @@
 import os
 import requests
 import json
+import re
+
+def extract_clean_price(text):
+    if not text:
+        return ""
+    match = re.search(r"(\d{1,3}(?:\.\d{3})*(?:,\d{2})?)\s*TL", text)
+    return match.group(1) + " TL" if match else ""
 
 def format_product_message(product):
     title = product.get("title", "🛍️ Ürün adı bulunamadı")
-    price = product.get("price", "Fiyat alınamadı")
-    old_price = product.get("old_price", "")  # 👈 Yeni satır
+    price = extract_clean_price(product.get("price", ""))
+    old_price = extract_clean_price(product.get("old_price", ""))
     asin = product.get("asin")
     if asin:
         link = f"https://indirimsinyali.com/Elektronik/{asin}.html"
