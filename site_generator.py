@@ -1,7 +1,6 @@
 import os
 import subprocess
 import requests
-import json
 from bs4 import BeautifulSoup
 
 def get_amazon_data(asin):
@@ -15,10 +14,8 @@ def get_amazon_data(asin):
         soup = BeautifulSoup(response.text, "html.parser")
         title_tag = soup.find("span", {"id": "productTitle"})
         title = title_tag.get_text(strip=True) if title_tag else asin
-        img_url = ""
         img_tag = soup.find("img", {"id": "landingImage"})
-        if img_tag and img_tag.get("src"):
-            img_url = img_tag["src"]
+        img_url = img_tag["src"] if img_tag and img_tag.get("src") else ""
         return title, img_url
     except Exception as e:
         print(f"❌ Amazon verisi alınamadı: {asin} → {e}")
@@ -64,6 +61,50 @@ def generate_html(product):
     )
     return html, slug
 
+def process_product(product):
+    html, slug = generate_html(product)
+    if not html.strip():
+        print(f"❌ HTML boş: {slug}")
+        return
+
+    try:
+        stash_result = subprocess.run(["git", "stash"], cwd="urunlerim", capture_output=True, text=True)
+        subprocess.run(["git", "pull", "--rebase"], cwd="urunlerim", check=True)
+        if "Saved working directory" in stash_result.stdout:
+            subprocess.run(["git", "stash", "pop"], cwd="urunlerim", check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"⚠️ Git rebase/stash hatası ama zincir devam ediyor: {e}")
+    kategori_path = os.path.join("urunlerim", "Elektronik")
+    os.makedirs(kategori_path, exist_ok=True)
+    filename = f"{slug}.html"
+    path = os.path.join(kategori_path, filename)
+    relative_path = os.path.join("Elektronik", filename)
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(html)
+    os.utime(path, None)
+    print(f"✅ Ürün sayfası oluşturuldu: {path}")
+
+    token = os.getenv("GH_TOKEN")
+    repo_url = f"https://{token}@github.com/anticomm/urunlerim.git"
+
+    subprocess.run(["git", "config", "--global", "user.name", "github-actions"], check=True)
+    subprocess.run(["git", "config", "--global", "user.email", "actions@github.com"], check=True)
+
+    try:
+        subprocess.run(["git", "pull", "--rebase"], cwd="urunlerim", check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"⚠️ İkinci rebase hatası ama zincir devam ediyor: {e}")
+
+    subprocess.run(["git", "add", relative_path], cwd="urunlerim", check=True)
+    has_changes = subprocess.call(["git", "diff", "--cached", "--quiet"], cwd="urunlerim") != 0
+    if has_changes:
+        subprocess.run(["git", "commit", "-m", f"{slug} ürünü eklendi"], cwd="urunlerim", check=True)
+        subprocess.run(["git", "push", repo_url], cwd="urunlerim", check=True)
+        print("🚀 Ürünlerim repo push tamamlandı.")
+    else:
+        print("⚠️ Commit edilecek değişiklik yok.")
+
 def update_category_page():
     kategori_path = os.path.join("urunlerim", "Elektronik")
     os.makedirs(kategori_path, exist_ok=True)
@@ -97,52 +138,6 @@ def update_category_page():
     with open(os.path.join(kategori_path, "index.html"), "w", encoding="utf-8") as f:
         f.write(html)
     print("✅ Elektronik kategori sayfası güncellendi.")
-
-def process_product(product):
-    html, slug = generate_html(product)
-    if not html.strip():
-        print(f"❌ HTML boş: {slug}")
-        return
-
-    try:
-        # Stash varsa sakla
-        stash_result = subprocess.run(["git", "stash"], cwd="urunlerim", capture_output=True, text=True)
-        # Rebase dene
-        subprocess.run(["git", "pull", "--rebase"], cwd="urunlerim", check=True)
-        # Eğer stash gerçekten bir şey sakladıysa, pop yap
-        if "Saved working directory" in stash_result.stdout:
-            subprocess.run(["git", "stash", "pop"], cwd="urunlerim", check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"⚠️ Git rebase/stash hatası ama zincir devam ediyor: {e}")
-
-    # HTML dosyasını yaz, commit et, vs.
-
-    kategori_path = os.path.join("urunlerim", "Elektronik")
-    os.makedirs(kategori_path, exist_ok=True)
-    filename = f"{slug}.html"
-    path = os.path.join(kategori_path, filename)
-    relative_path = os.path.join("Elektronik", filename)
-
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(html)
-    os.utime(path, None)
-    print(f"✅ Ürün sayfası oluşturuldu: {path}")
-
-    token = os.getenv("GH_TOKEN")
-    repo_url = f"https://{token}@github.com/anticomm/urunlerim.git"
-
-    subprocess.run(["git", "config", "--global", "user.name", "github-actions"], check=True)
-    subprocess.run(["git", "config", "--global", "user.email", "actions@github.com"], check=True)
-
-    subprocess.run(["git", "pull", "--rebase"], cwd="urunlerim", check=True)
-    subprocess.run(["git", "add", relative_path], cwd="urunlerim", check=True)
-
-    has_changes = subprocess.call(["git", "diff", "--cached", "--quiet"], cwd="urunlerim") != 0
-    if has_changes:
-        subprocess.run(["git", "commit", "-m", f"{slug} ürünü eklendi"], cwd="urunlerim", check=True)
-        print("🚀 Ürünlerim repo push tamamlandı.")
-    else:
-        print("⚠️ Commit edilecek değişiklik yok.")
 
 def generate_site(products):
     for product in products:
