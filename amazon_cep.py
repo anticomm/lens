@@ -267,7 +267,15 @@ def run():
                 print(f"⏩ Fiyat yükseldi veya aynı: {product['title']} → {old_price} → {price}")
 
             sent_data[asin] = price
-
+        else:
+            print(f"🆕 Yeni ürün: {product['title']}")
+            product["old_price"] = ""
+            product["rating"] = product.get("rating", "")
+            product["specs"] = product.get("specs", [])
+            product["amazon_link"] = product.get("link", "")
+            products_to_send.append(product)
+            sent_data[asin] = price
+    
     if products_to_send:
         site.generate_site(products_to_send)
         print(f"📁 Dosya güncellendi: {len(products_to_send)} ürün eklendi/güncellendi.")
