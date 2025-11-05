@@ -111,6 +111,7 @@ def process_product(product):
         print("⚠️ Rebase hatası ama zincir devam ediyor")
 
     # HTML dosyasını yazma ve diğer işlemler burada devam eder
+
     # HTML dosyasını yaz, commit et, vs.
 
     kategori_path = os.path.join("urunlerim", "Elektronik")
