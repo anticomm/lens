@@ -200,7 +200,19 @@ def run():
             except:
                 rating = ""
             try:
-                specs = [li.text.strip() for li in item.find_elements(By.CSS_SELECTOR, "div.a-row.a-size-base.a-color-secondary span")]
+                specs = []
+                for li in item.find_elements(By.CSS_SELECTOR, "div.a-row.a-size-base.a-color-secondary span"):
+                    text = li.text.strip()
+                    if not text:
+                        continue
+                    if "satın alma" in text.lower():
+                        continue
+                    if "ikinci el" in text.lower():
+                        continue
+                    if re.search(r"\d{1,3}(?:\.\d{3})*(?:,\d{2})?\s*TL", text):
+                        continue
+                    specs.append(text)
+
             except:
                 specs = []
             
