@@ -197,9 +197,11 @@ def run():
                 specs = [li.text.strip() for li in item.find_elements(By.CSS_SELECTOR, "div.a-row.a-size-base.a-color-secondary span")]
             except:
                 specs = []
-            price = get_used_price_from_item(item)
+            raw_price = get_used_price_from_item(item)
+            price = extract_clean_price(raw_price) if raw_price else None
             if not price:
-                price = get_final_price(driver, link)
+                raw_price = get_final_price(driver, link)
+                price = extract_clean_price(raw_price) if raw_price else None
 
             if not price:
                 continue
