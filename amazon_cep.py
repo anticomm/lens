@@ -19,6 +19,16 @@ URL = "https://www.amazon.com.tr/s?k=%C3%BCt%C3%BC&i=kitchen&bbn=44219324031&rh=
 COOKIE_FILE = "cookie_cep.json"
 SENT_FILE = "send_products.txt"
 
+def extract_clean_price(text):
+    """
+    Metinden sadece '1.234,56 TL' formatındaki fiyatı çeker.
+    'ikinci el ürün', 'diğer satın alma seçenekleri' gibi metinleri temizler.
+    """
+    if not text:
+        return ""
+    match = re.search(r"(\d{1,3}(?:\.\d{3})*(?:,\d{2})?)\s*TL", text)
+    return match.group(1) + " TL" if match else ""
+
 def decode_cookie_from_env():
     cookie_b64 = os.getenv("COOKIE_B64")
     if not cookie_b64:
