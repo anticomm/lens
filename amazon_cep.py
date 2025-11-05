@@ -199,22 +199,6 @@ def run():
                 rating = item.find_element(By.CSS_SELECTOR, "span.a-icon-alt").text.strip()
             except:
                 rating = ""
-            try:
-                specs = []
-                for li in item.find_elements(By.CSS_SELECTOR, "div.a-row.a-size-base.a-color-secondary span"):
-                    text = li.text.strip()
-                    if not text:
-                        continue
-                    if "satın alma" in text.lower():
-                        continue
-                    if "ikinci el" in text.lower():
-                        continue
-                    if re.search(r"\d{1,3}(?:\.\d{3})*(?:,\d{2})?\s*TL", text):
-                        continue
-                    specs.append(text)
-
-            except:
-                specs = []
             
             raw_price = get_used_price_from_item(item)
             price = extract_clean_price(raw_price) if raw_price else None
@@ -233,7 +217,6 @@ def run():
                 "image": image,
                 "price": price,
                 "rating": rating,
-                "specs": specs
             })
 
         except Exception as e:
