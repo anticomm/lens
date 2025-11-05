@@ -266,14 +266,25 @@ def run():
         for p in products_to_send:
             send_message(p)
             run_capture(p)
-        
         save_sent_data(sent_data)
-        with open("send_products.txt", "w", encoding="utf-8") as f:
-            for p in products_to_send:
-                f.write(f"{p['asin']} | {p['price']}\n")
 
-    else:
-        print("⚠️ Yeni veya indirimli ürün bulunamadı.")
+def save_sent_data(sent_data):
+    existing = {}
+    if os.path.exists("send_products.txt"):
+        with open("send_products.txt", "r", encoding="utf-8") as f:
+            for line in f:
+                parts = line.strip().split(" | ")
+                if len(parts) == 2:
+                    existing[parts[0]] = parts[1]  # asin → price
+
+    # sent_data içindeki en güncel fiyatları overwrite et
+    for asin, price in sent_data.items():
+        existing[asin] = price
+
+    with open("send_products.txt", "w", encoding="utf-8") as f:
+        for asin, price in existing.items():
+            f.write(f"{asin} | {price}\n")
+    print(f"📤 send_products.txt güncellendi: {len(existing)} ürün yazıldı.")
 
 if __name__ == "__main__":
     try:
