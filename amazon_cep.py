@@ -198,20 +198,10 @@ def run():
             title = item.find_element(By.CSS_SELECTOR, "img.s-image").get_attribute("alt").strip()
             link = item.find_element(By.CSS_SELECTOR, "a.a-link-normal").get_attribute("href")
             image = item.find_element(By.CSS_SELECTOR, "img.s-image").get_attribute("src")
-            try:
-                rating = item.find_element(By.CSS_SELECTOR, "span.a-icon-alt").text.strip()
-            except:
-                rating = ""
-
-            try:
-                specs = [li.text.strip() for li in item.find_elements(By.CSS_SELECTOR, "div.a-row.a-size-base.a-color-secondary span")]
-            except:
-                specs = []
-            raw_price = get_used_price_from_item(item)
-            price = extract_clean_price(raw_price) if raw_price else None
+          
+            price = get_used_price_from_item(item)
             if not price:
-                raw_price = get_final_price(driver, link)
-                price = extract_clean_price(raw_price) if raw_price else None
+                price = get_final_price(driver, link)
 
             if not price:
                 continue
