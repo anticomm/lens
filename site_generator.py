@@ -105,9 +105,13 @@ def process_product(product):
         return
 
     try:
-        subprocess.run(["git", "stash"], cwd="urunlerim", check=True)
+        # Stash varsa sakla
+        stash_result = subprocess.run(["git", "stash"], cwd="urunlerim", capture_output=True, text=True)
+        # Rebase dene
         subprocess.run(["git", "pull", "--rebase"], cwd="urunlerim", check=True)
-        subprocess.run(["git", "stash", "pop"], cwd="urunlerim", check=True)
+        # Eğer stash gerçekten bir şey sakladıysa, pop yap
+        if "Saved working directory" in stash_result.stdout:
+            subprocess.run(["git", "stash", "pop"], cwd="urunlerim", check=True)
     except subprocess.CalledProcessError as e:
         print(f"⚠️ Git rebase/stash hatası ama zincir devam ediyor: {e}")
 
