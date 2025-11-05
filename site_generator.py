@@ -104,11 +104,13 @@ def process_product(product):
         print(f"❌ HTML boş: {slug}")
         return
 
+    # Rebase zinciri kesmesin
     try:
         subprocess.run(["git", "pull", "--rebase"], cwd="urunlerim", check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"⚠️ Rebase hatası ama zincir devam ediyor: {e}")
+    except subprocess.CalledProcessError:
+        print("⚠️ Rebase hatası ama zincir devam ediyor")
 
+    # HTML dosyasını yazma ve diğer işlemler burada devam eder
     # HTML dosyasını yaz, commit et, vs.
 
     kategori_path = os.path.join("urunlerim", "Elektronik")
