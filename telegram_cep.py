@@ -63,7 +63,8 @@ def send_message(product):
     asin = product.get("asin")
     real_link = f"https://indirimsinyali.com/Elektronik/{asin}.html" if asin else product.get("link", "#")
     short_link = f"https://indir.im/{asin}" if asin else real_link
-   
+    link = short_link  # Telegram butonunda kullanılacak
+
     try:
         reply_markup = json.dumps({
             "inline_keyboard": [[
