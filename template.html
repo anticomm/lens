@@ -28,9 +28,15 @@
       width: auto;
       max-width: 100%;
     }}
+    .hamburger {{
+      display: none;
+      font-size: 28px;
+      cursor: pointer;
+      color: #ff6600;
+    }}
     .menu-right ul {{
-      list-style: none;
       display: flex;
+      list-style: none;
       gap: 20px;
       margin: 0;
       padding: 0;
@@ -41,6 +47,26 @@
       text-decoration: none;
       font-weight: bold;
       padding: 8px 12px;
+    }}
+    @media (max-width: 768px) {{
+      .hamburger {{
+        display: block;
+      }}
+      .menu-right {{
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        margin-top: 10px;
+      }}
+      .menu-right.show {{
+        display: flex;
+      }}
+      .menu-right ul {{
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+        padding-left: 20px;
+      }}
     }}
     .entry-title {{ color: #000000; font-size: 28px; margin: 20px 0; text-align: center; }}
     .post-thumbnail img {{
@@ -80,24 +106,21 @@
       margin-left: auto;
       margin-right: auto;
     }}
-
     footer section {{
       margin-bottom: 24px;
     }}
-
     footer h2 {{
       font-size: 20px;
       margin-bottom: 12px;
       color: #000000;
     }}
-
     footer p {{
       margin: 0 auto;
       max-width: 90%;
       word-wrap: break-word;
       overflow-wrap: break-word;
     }}
-    .copyright{{ 
+    .copyright {{
       text-align: center;
       font-size: 13px;
       color: #666;
@@ -171,5 +194,13 @@
   <div class="copyright">
     © 2025 İndirimsinyali - Tüm hakları saklıdır.
   </div>
+
+  <!-- Hamburger Menü Script -->
+  <script>
+    function toggleMenu() {{
+      const menu = document.getElementById("menu");
+      menu.classList.toggle("show");
+    }}
+  </script>
 </body>
 </html>
