@@ -15,6 +15,8 @@
       background-color: #ffffff;
       border-bottom: 2px solid #ffcc99;
       padding: 16px 24px;
+      position: relative;
+      z-index: 1000;
     }}
     .navbar-inner {{
       display: flex;
@@ -54,18 +56,38 @@
       }}
       .menu-right {{
         display: none;
-        flex-direction: column;
+        position: absolute;
+        top: 80px;
+        left: 0;
         width: 100%;
-        margin-top: 10px;
+        background-color: #ffffff;
+        border-top: 2px solid #ffcc99;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        z-index: 999;
+        padding: 20px 0;
       }}
       .menu-right.show {{
-        display: flex;
+        display: block;
       }}
       .menu-right ul {{
         flex-direction: column;
-        gap: 10px;
-        align-items: flex-start;
-        padding-left: 20px;
+        gap: 20px;
+        align-items: center;
+        padding: 0;
+        margin: 0;
+      }}
+      .menu-right li {{
+        list-style: none;
+      }}
+      .menu-right a {{
+        font-size: 18px;
+        color: #ff6600;
+        text-decoration: none;
+        font-weight: bold;
+        padding: 12px 0;
+        display: block;
+        width: 100%;
+        text-align: center;
       }}
     }}
     .entry-title {{ color: #000000; font-size: 28px; margin: 20px 0; text-align: center; }}
