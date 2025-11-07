@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{{title}}</title>
+  <title>{title}</title>
   <style>
     body {{
       margin: 0;
@@ -43,31 +43,15 @@
       font-weight: bold;
       padding: 8px 12px;
     }}
-    .entry-title {{
-      color: #000000;
-      font-size: 28px;
-      margin: 20px 0;
-      text-align: center;
-    }}
+    .entry-title {{ color: #000000; font-size: 28px; margin: 20px 0; text-align: center; }}
     .post-thumbnail img {{
       max-width: 100%;
       height: auto;
       display: block;
       margin: auto;
     }}
-    .fiyat {{
-      font-size: 22px;
-      color: #000000;
-      font-weight: bold;
-      text-align: center;
-      display: block;
-    }}
-    .guncel {{
-      font-size: 14px;
-      color: #888;
-      text-align: center;
-      display: block;
-    }}
+    .fiyat {{ font-size: 22px; color: #000000; font-weight: bold; text-align: center; display: block; }}
+    .guncel {{ font-size: 14px; color: #888; text-align: center; display: block; }}
     .btn {{
       display: block;
       background-color: #0077cc;
@@ -81,21 +65,9 @@
       margin: 20px auto;
       width: fit-content;
     }}
-    .telegram {{
-      text-align: center;
-      margin: 10px 0;
-    }}
-    .telegram a {{
-      color: #0077cc;
-      text-decoration: none;
-      font-weight: bold;
-    }}
-    .mobil-uyari {{
-      font-size: 14px;
-      color: #999;
-      text-align: center;
-      display: block;
-    }}
+    .telegram {{ text-align: center; margin: 10px 0; }}
+    .telegram a {{ color: #0077cc; text-decoration: none; font-weight: bold; }}
+    .mobil-uyari {{ font-size: 14px; color: #999; text-align: center; display: block; }}
     footer {{
       background-color: #f9f9f9;
       padding: 30px;
@@ -136,20 +108,20 @@
   <!-- Ürün İçeriği -->
   <article class="product-entry">
     <header class="entry-header">
-      <h1 class="entry-title">{{title}}</h1>
+      <h1 class="entry-title">{title}</h1>
     </header>
 
     <figure class="post-thumbnail">
-      <img src="{{image}}" alt="{{title}}" />
+      <img src="{image}" alt="{title}" />
     </figure>
 
     <div class="entry-content">
-      <span class="fiyat">{{price_html}}</span>
-      <span class="guncel">↻ {{date}} tarihinde güncellendi.</span>
+      <span class="fiyat">{price_html}</span>
+      <span class="guncel">↻ {date} tarihinde güncellendi.</span>
       <div class="telegram">
         <a href="https://t.me/amazonindirimler1" target="_blank">📲 Bu ürün indirime girdiğinde Telegram’dan bildirim alın!</a>
       </div>
-      <a class="btn" href="{{link}}" target="_blank">Fırsata Git</a>
+      <a class="btn" href="{link}" target="_blank">Fırsata Git</a>
       <span class="mobil-uyari">📢 İlgili ürün için fırsata git bağlantısına tıklayın.</span>
     </div>
   </article>
