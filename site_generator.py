@@ -1,7 +1,10 @@
 import os
 import subprocess
 import requests
+import shutil
 from bs4 import BeautifulSoup
+
+shutil.copy("logo.png", "urunlerim/img/logo.png")
 
 def get_amazon_data(asin):
     url = f"https://www.amazon.com.tr/dp/{asin}"
