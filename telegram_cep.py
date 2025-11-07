@@ -63,7 +63,8 @@ def send_message(product):
     image_url = product.get("image")
     asin = product.get("asin")
     real_link = f"https://indirimsinyali.com/Elektronik/{asin}.html" if asin else product.get("link", "#")
-
+    link = real_link
+    
     try:
         reply_markup = json.dumps({
             "inline_keyboard": [[
