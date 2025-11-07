@@ -11,32 +11,31 @@
       background-color: #ffffff;
       color: #333;
     }}
-    .logo-container {{
-      text-align: center;
-      padding: 10px 0;
-    }}
-
     .logo {{
-      max-width: 180px;
+      max-height: 50px;
       height: auto;
     }}
     .navbar {{
-      background-color: #ff6600;
-      padding: 15px;
+      background-color: #ffffff;
+      border-bottom: 2px solid #ffcc99;
+      padding: 20px 30px;
     }}
-    .navbar ul {{
-      list-style: none;
-      margin: 0;
-      padding: 0 10px;
+    .navbar-inner {{
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      gap: 16px;
+      flex-wrap: wrap;
     }}
-    .navbar a {{
+    .menu-right ul {{
+      list-style: none;
+      display: flex;
+      gap: 20px;
+      margin: 0;
+      padding: 0;
+    }}
+    .menu-right a {{
       font-size: 16px;
-      color: white;
+      color: #ff6600;
       text-decoration: none;
       font-weight: bold;
       padding: 8px 12px;
@@ -87,18 +86,20 @@
   </style>
 </head>
 <body>
-  <div class="logo-container">
-    <img src="img/logo.png" alt="İndirim Sinyali" class="logo" />
-  </div>
   <!-- Navigasyon Bar -->
   <header class="navbar">
-    <nav>
-      <ul>
-        <li><a href="/">Anasayfa</a></li>
-        <li><a href="#hakkimizda">Hakkımızda</a></li>
-        <li><a href="#iletisim">İletişim</a></li>
-      </ul>
-    </nav>
+    <div class="navbar-inner">
+      <div class="logo-left">
+        <img src="img/logo.png" alt="İndirim Sinyali" class="logo" />
+      </div>
+      <nav class="menu-right">
+        <ul>
+          <li><a href="/">Anasayfa</a></li>
+          <li><a href="#hakkimizda">Hakkımızda</a></li>
+          <li><a href="#iletisim">İletişim</a></li>
+        </ul>
+      </nav>
+    </div>
   </header>
 
   <!-- Ürün İçeriği -->
