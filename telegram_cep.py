@@ -49,17 +49,6 @@ def format_product_message(product):
         f"{fiyat_bilgisi}\n"
     )
 
-def shorten_url(url):
-    try:
-        api = f"https://tinyurl.com/api-create.php?url={url}"
-        res = requests.get(api, timeout=5)
-        if res.status_code == 200:
-            return res.text.strip()
-        else:
-            print("Kısaltma başarısız:", res.text)
-    except Exception as e:
-        print("Kısaltma hatası:", e)
-    return url
 
 def send_message(product):
     token = os.getenv("BOT_TOKEN")
@@ -74,8 +63,6 @@ def send_message(product):
     image_url = product.get("image")
     asin = product.get("asin")
     real_link = f"https://indirimsinyali.com/Elektronik/{asin}.html" if asin else product.get("link", "#")
-    short_link = shorten_url(real_link)
-    link = short_link  # Telegram butonunda kullanılacak
 
     try:
         reply_markup = json.dumps({
