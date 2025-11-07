@@ -61,7 +61,7 @@ def send_message(product):
     message = format_product_message(product)
     image_url = product.get("image")
     asin = product.get("asin")
-    link = f"https://indirimsinyali.com/Elektronik/{asin}.html" if asin else product.get("link", "#")
+    link = f"https://indir.im/{asin}" if asin else product.get("link", "#")
 
     try:
         reply_markup = json.dumps({
