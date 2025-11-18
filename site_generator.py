@@ -1,3 +1,4 @@
+
 import os
 import subprocess
 import threading
@@ -142,7 +143,10 @@ def generate_site(products, template, products_to_notify):
 
     token = os.getenv("GH_TOKEN")
     repo_url = f"https://{token}@github.com/anticomm/urunlerim.git"
-
+    
+    if not os.path.exists("urunlerim"):
+        subprocess.run(["git", "clone", repo_url, "urunlerim"], check=True)
+   
     try:
         subprocess.run(["git", "pull", "--ff-only"], cwd="urunlerim", check=True)
     except subprocess.CalledProcessError as e:
@@ -152,7 +156,7 @@ def generate_site(products, template, products_to_notify):
     has_changes = subprocess.call(["git", "diff", "--cached", "--quiet"], cwd="urunlerim") != 0
     if has_changes:
         subprocess.run(["git", "commit", "-m", f"{len(slugs)} ürün eklendi/güncellendi"], cwd="urunlerim", check=True)
-        subprocess.run(["git", "push", repo_url], cwd="urunlerim", check=True)
+        subprocess.run(["git", "push", repo_url], check=True)
         print("🚀 Toplu repo push tamamlandı.")
     else:
         print("⚠️ Commit edilecek değişiklik yok.")
